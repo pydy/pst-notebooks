@@ -1,4 +1,7 @@
 Collection of dynamics notebooks by P. Stahlecker.
+Some names end in -opty or in -opty-sys. In addition
+to sympy.physics.mechanics, they use opty or opty and
+pydy:System. Please read the docs on them for details.
 
 # chain-link.ipynb
 
