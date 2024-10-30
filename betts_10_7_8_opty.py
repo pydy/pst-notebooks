@@ -40,18 +40,14 @@ sm.pprint(eom)
 
 # %%
 
-def solve_optimization(nodes, tf):
+def solve_optimization(nodes, tf, iterations=1):
     t0, tf = 0.0, tf
     num_nodes = nodes
     interval_value = (tf - t0)/(num_nodes - 1)
     #times = np.linspace(t0, tf, num=num_nodes)
 
-
-    # Provide some reasonably realistic values for the constants.
-
     state_symbols = (y, uy)
     specified_symbols = (u,)
-
 
     # Specify the objective function and form the gradient.
     start = time.time()
@@ -62,13 +58,11 @@ def solve_optimization(nodes, tf):
                                           specified_symbols,
                                           tuple(),
                                           num_nodes,
-                                          node_time_interval=interval_value)
-
+                                          node_time_interval=interval_value,
+    )
 
     # Specify the symbolic instance constraints, as per the example
     instance_constraints = (
-    #    y.func(t0),
-    #    y.func(tf),
         y.func(t0) - 1,
         y.func(tf) - 1.5,
     )
@@ -82,23 +76,23 @@ def solve_optimization(nodes, tf):
 
     prob.add_option('nlp_scaling_method', 'gradient-based')
 
-    # Give some rough estimates for the x and y trajectories.
+    # Give some rough estimates for y, uy, u trajectories.
     initial_guess = np.zeros(prob.num_free)
-    prob.plot_trajectories(initial_guess)
 
     # Find the optimal solution.
-    solution, info = prob.solve(initial_guess)
-    print(info['status_msg'])
-    print(f'Objective value achieved: {info['obj_val']:.4f}, as per the book ' +
-        f'it is {6.7241}, so the error is: '
-        f'{(info['obj_val'] - 6.7241)/6.7241*100:.3f} % ')
-    print(f'Time taken for the simulation: {time.time() - start:.2f} s')
+    for _ in range(iterations):
+        solution, info = prob.solve(initial_guess)
+        initial_guess = solution
+        print(info['status_msg'])
+        print(f'Objective value achieved: {info['obj_val']:.4f}, as per the book ' +
+            f'it is {6.7241}, so the error is: '
+            f'{(info['obj_val'] - 6.7241)/6.7241*100:.3f} % ')
+        print(f'Time taken for the simulation: {time.time() - start:.2f} s')
 
     # Plot the optimal state and input trajectories.
     prob.plot_trajectories(solution)
 
     # Plot the constraint violations.
-    #fig, ax = plt.subplots(2, 1, figsize=(6, 6))
     prob.plot_constraint_violations(solution)
 
     # Plot the objective function as a function of optimizer iteration.
@@ -116,8 +110,7 @@ solve_optimization(num_nodes, tf)
 # So, it may make sense to use a smaller  tf
 tf = 10
 num_nodes = 5001
-solve_optimization(num_nodes, tf)
-
+solve_optimization(num_nodes, tf, iterations=1)
 
 # %%
 """
@@ -127,8 +120,12 @@ Hypersensitive Control
 This is example 10.8 from Betts' Test Problems.
 Mathematically it is EXACTLY the same as the previous example, only
 the formulation is different.
-The comparison to example 10.7 above shows, that different formulations of the
-same problem, may have drastic influences of the optimization.
+The comparison to example 10.7 above shows that different formulations of the
+same problem, may have (drastic) influences of the optimization.
+
+Interesting: While here example 10.8 takes much longer than the mathematically
+equivalent 10.7, in the timings Betts give in appendix A.2. the opposite is the
+case.
 
 **States**
 
@@ -150,18 +147,13 @@ sm.pprint(eom)
 
 # %%
 
-def solve_optimization(nodes, tf):
+def solve_optimization(nodes, tf, iterations=1):
     t0, tf = 0.0, tf
     num_nodes = nodes
     interval_value = (tf - t0)/(num_nodes - 1)
-    #times = np.linspace(t0, tf, num=num_nodes)
-
-
-    # Provide some reasonably realistic values for the constants.
 
     state_symbols = (y, z, uy, uz)
     specified_symbols = (u,)
-
 
     # Specify the objective function and form the gradient.
     start = time.time()
@@ -172,8 +164,8 @@ def solve_optimization(nodes, tf):
                                           specified_symbols,
                                           tuple(),
                                           num_nodes,
-                                          node_time_interval=interval_value)
-
+                                          node_time_interval=interval_value,
+    )
 
     # Specify the symbolic instance constraints, as per the example
     instance_constraints = (
@@ -181,7 +173,6 @@ def solve_optimization(nodes, tf):
         y.func(t0) - 1,
         y.func(tf) - 1.5,
     )
-
 
     # Create the optimization problem and set any options.
     prob = Problem(obj, obj_grad, eom, state_symbols,
@@ -191,24 +182,24 @@ def solve_optimization(nodes, tf):
 
     prob.add_option('nlp_scaling_method', 'gradient-based')
 
-    # Give some rough estimates for the x and y trajectories.
+    # Give some rough estimates for the trajectories.
     initial_guess = np.zeros(prob.num_free)
-    prob.plot_trajectories(initial_guess)
 
     # Find the optimal solution.
-    solution, info = prob.solve(initial_guess)
-    print(info['status_msg'])
-    print(f'Objective value achieved: {info['obj_val']:.4f}, as per the book ' +
-        f'it is {6.7241}, so the error is: '
-        f'{(info['obj_val'] - 6.7241)/6.7241*100:.3f} % ')
+    for _ in range(iterations):
+        solution, info = prob.solve(initial_guess)
+        initial_guess = solution
+        print(info['status_msg'])
+        print(f'Objective value achieved: {info['obj_val']:.4f}, as per the book ' +
+            f'it is {6.7241}, so the error is: '
+            f'{(info['obj_val'] - 6.7241)/6.7241*100:.3f} % ')
 
-    print(f'Time taken for the simulation: {time.time() - start:.2f} s')
+        print(f'Time taken for the simulation: {time.time() - start:.2f} s')
 
     # Plot the optimal state and input trajectories.
     prob.plot_trajectories(solution)
 
     # Plot the constraint violations.
-    #fig, ax = plt.subplots(2, 1, figsize=(6, 6))
     prob.plot_constraint_violations(solution)
 
     # Plot the objective function as a function of optimizer iteration.
