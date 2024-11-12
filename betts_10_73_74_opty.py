@@ -57,12 +57,6 @@ interval_value = h
 state_symbols = x
 unkonwn_input_trajectories = (u, )
 
-t0, tf = 0*h, (num_nodes - 1) * h
-interval_value = h
-
-state_symbols = x
-unkonwn_input_trajectories = (u, )
-
 # Specify the objective function and form the gradient.
 def obj(free):
     return free[-1]
