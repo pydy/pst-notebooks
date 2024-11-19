@@ -43,7 +43,7 @@ h_fast = sm.symbols('h_fast')
 eom = sm.Matrix([
     -x.diff() + v*sm.cos(u),
     -y.diff() + v*sm.sin(u),
-    -v.diff() + 32.185 * sm.sin(u),
+    -v.diff() + 32.17405 * sm.sin(u),
 ])
 sm.pprint(eom)
 
@@ -105,7 +105,7 @@ for i in range(1):
     solution, info = prob.solve(initial_guess)
     initial_guess = solution
     print(info['status_msg'])
-    print(f'Duration is: {solution[-1]*(num_nodes-1):.4f}, ' +
+    print(f'Duration is: {solution[-1]*(num_nodes-1):.6f}, ' +
           f'as per the book it is {0.312480130}, so the deviation is: ' +
         f'{(solution[-1]*(num_nodes-1) - 0.312480130)/0.312480130*100 :.3e} %')
 #    print(f'p(tf) = {solution[num_nodes-1]:.4f}' +
