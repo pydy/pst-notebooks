@@ -1,15 +1,18 @@
-Collection of dynamics notebooks by P. Stahlecker.\
-Some names end in -opty or in -opty-sys. In addition
-to sympy.physics.mechanics, they use opty or opty and
-pydy.System. Please read the docs on them for details.\
-The best examples for opty may be found at opty/examples-gallery.
+Mechanics examples by Peter Stahlecker.
 
-# chain-link.ipynb
+View the example gallery at:
 
-<iframe width="456" height="810" src="https://www.youtube.com/embed/r7ENaJJU_UI" title="50 link 2D pendulum" frameborder="0"
-allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+https://pydy.github.io/pst-notebooks
 
-# h-c-colliding-discs-friction.ipynb
+# Steps for Updating the Website
 
-<iframe width="456" height="810" src="https://www.youtube.com/embed/l6SvIPoyIqQ" title="Discs Colliding with Friction" frameborder="0"
-allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+1. Make changes to the source files in the `main` branch (i.e. `.rst` files or
+   in `gallery/plot_*.py` files).
+2. Run `make clean` to remove old files.
+3. Run `make html` to generate the website locally.
+4. Check the `_build/html/index.html` locally in your web browser for errors.
+5. If the website looks correct, commit all changes in the main branch.
+6. Now upload a new version of the website to Github with the following
+   command in the Conda Prompt:
+
+   `ghp-import --no-jekyll --no-history -m "Website update" -p _build\html`
