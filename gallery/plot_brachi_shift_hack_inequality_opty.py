@@ -286,7 +286,7 @@ if os.path.exists('hack.csv') and os.path.exists('intrinsic.csv'):
     hack_sol, *_ = prob.parse_free(hack_sol)
     intrinsic_sol, *_ = prob.parse_free(intrinsic_sol)
 
-    times = prob.time_vector(solution)
+    times = np.linspace(t0, (num_nodes - 1) * solution[-1], num_nodes)
     fig, ax = plt.subplots(figsize=(7, 2))
     for i in range(4):
         ax.plot(times, hack_sol[i] - intrinsic_sol[i])
