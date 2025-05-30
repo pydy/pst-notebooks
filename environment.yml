@@ -1,0 +1,12 @@
+name: pst-notebooks
+channels:
+  - conda-forge
+dependencies:
+  - matplotlib
+  - numpy
+  - opty
+  - pydy
+  - scipy
+  - sphinx
+  - sphinx-gallery
+  - sympy
