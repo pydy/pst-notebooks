@@ -14,8 +14,7 @@ documentation for details.
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-<<<<<<< HEAD
-=======
+
 
    gallery/index.rst
->>>>>>> 3c618776fc02517cd9976c8668affe4568ae4052
+
