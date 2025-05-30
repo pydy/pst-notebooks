@@ -15,4 +15,4 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
 
-   gallery/index.rst
+   autogallery/index.rst
