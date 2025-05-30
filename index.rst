@@ -16,5 +16,5 @@ documentation for details.
    :caption: Contents:
 
 
-   gallery/index.rst
+   autogallery/index.rst
 

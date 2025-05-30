@@ -1,9 +1,6 @@
 import os
 import multiprocessing
 
-DOCS_CONF_PATH = os.path.realpath(__file__)
-REPO_DIR = os.path.dirname(DOCS_CONF_PATH)
-
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -30,8 +27,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Sphinx Gallery configuration --------------------------------------------
 sphinx_gallery_conf = {
     'copyfile_regex': r'.*\.(npy|csv|yml|txt)',
-    'examples_dirs': os.path.join(REPO_DIR, 'gallery'),
-    'gallery_dirs': ['gallery'],
+    'examples_dirs': ['gallery'],
+    'gallery_dirs': ['autogallery'],
     'matplotlib_animations': True,
     'parallel': multiprocessing.cpu_count(),
     'remove_config_comments': True,
