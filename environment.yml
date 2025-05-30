@@ -2,6 +2,7 @@ name: pst-notebooks
 channels:
   - conda-forge
 dependencies:
+  - joblib
   - matplotlib
   - numpy
   - opty
