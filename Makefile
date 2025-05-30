@@ -15,7 +15,7 @@ help:
 .PHONY: help Makefile
 
 push:
-	ghp-import --no-jekyll -m "Website update" -b main -p _build/html
+	ghp-import --no-jekyll --no-history -m "Website update" -p _build/html
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
