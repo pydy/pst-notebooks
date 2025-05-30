@@ -97,7 +97,7 @@ import time
 # the inequality constraint or to use a hack to enforce the inequality.
 # ``hack = True`` uses the hack.
 # ``hack = False`` uses the intrinsic capability of opty.
-hack = False
+hack = True
 # =============================================================================
 if hack:
     meldung = 'hack used'
@@ -219,19 +219,33 @@ else:
 # backend='numpy' is used to speed up the execution if a solution is available.
 # If no solution is available, backend='cython' is recommended, as it takes a
 # large number of iterations to reach the optimal solution.
-prob = Problem(
-    obj,
-    obj_grad,
-    eom,
-    state_symbols,
-    num_nodes,
-    h,
-    time_symbol=t,
-    known_parameter_map=par_map,
-    instance_constraints=instance_constraint,
-    bounds=bounds,
-    eom_bounds=eom_bounds,
-)
+if hack is False:
+    prob = Problem(
+        obj,
+        obj_grad,
+        eom,
+        state_symbols,
+        num_nodes,
+        h,
+        time_symbol=t,
+        known_parameter_map=par_map,
+        instance_constraints=instance_constraint,
+        bounds=bounds,
+        eom_bounds=eom_bounds,
+    )
+else:
+    prob = Problem(
+        obj,
+        obj_grad,
+        eom,
+        state_symbols,
+        num_nodes,
+        h,
+        time_symbol=t,
+        known_parameter_map=par_map,
+        instance_constraints=instance_constraint,
+        bounds=bounds,
+    )
 
 # %%
 # Solve the problem.
