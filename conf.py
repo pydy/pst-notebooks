@@ -22,13 +22,13 @@ extensions = [
 ]
 
 templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'gallery']
 
 # -- Sphinx Gallery configuration --------------------------------------------
 sphinx_gallery_conf = {
     'copyfile_regex': r'.*\.(npy|csv|yml|txt)',
     'examples_dirs': ['gallery'],
-    'gallery_dirs': ['autogallery'],
+    'gallery_dirs': ['examples'],
     'matplotlib_animations': True,
     'parallel': multiprocessing.cpu_count(),
     'remove_config_comments': True,
