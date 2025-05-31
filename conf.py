@@ -39,3 +39,10 @@ sphinx_gallery_conf = {
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
+
+html_theme_options = {
+    'github_repo': 'pst-notebook',
+    'github_type': 'star',
+    'github_user': 'pydy',
+    'page_width': '1080px',  # 960 doesn't show 79 linewidth examples
+}
