@@ -29,6 +29,17 @@ conda activate pst-notebooks
 
 ## Build the website
 
+The primary Sphinx files in the directory are:
+
+```
+index.rst  # front page of the website, corresponds to index.html
+Makefile  # commands to build the website on Linux/Mac
+make.bat  # commands to build the website on Windows
+conf.py  # Sphinx configuration file
+gallery/plot_*.py  # example files, must start with "plot_"
+gallery/GALLERY_HEADER.rst  # corresponds to example gallery page
+```
+
 Run:
 
 ```
