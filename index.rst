@@ -13,4 +13,4 @@ Opty, SciPy, Matplotlib, etc.
    :maxdepth: 2
    :caption: Contents:
 
-   autogallery/index.rst
+   examples/index.rst
