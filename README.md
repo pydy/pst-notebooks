@@ -1,4 +1,4 @@
-# Mechanics examples by Peter Stahlecker.
+# Mechanics Examples by Peter Stahlecker.
 
 View the example gallery at:
 

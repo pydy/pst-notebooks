@@ -3,18 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Peter's Mechanics Examples documentation
-========================================
+Peter's Mechanics Examples
+==========================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
+Mechanics examples created using various scientific Python tools: SymPy, PyDy,
+Opty, SciPy, Matplotlib, etc.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-
    autogallery/index.rst
-
