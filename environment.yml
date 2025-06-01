@@ -2,6 +2,7 @@ name: pst-notebooks
 channels:
   - conda-forge
 dependencies:
+  - ffmpeg
   - flake8
   - ghp-import
   - ipython
