@@ -1,5 +1,4 @@
 # %%
-
 r"""
 Bouncing Ellipse
 ================
@@ -7,7 +6,7 @@ Bouncing Ellipse
 Objective
 ---------
 
-- Show how to use Hunt-Crossley"s theory of impact on a somewhat non-trivial
+- Show how to use Hunt-Crossley's theory of impact on a somewhat non-trivial
   example.
 
 Description of the Model
@@ -17,8 +16,8 @@ A homogenious ellipse of mass :math:`m` and semi axes :math:`a, b` is dropped
 or thrown on an uneven street. A particle of mass :math:`m_o` may be attached
 anywhere within th ellipse.
 
-#The street is a 'curve' in the X/Y plane, gravitation points in the negative
-# Y - direction.
+The street is a curve in the X/Y plane, gravitation points in the negative
+Y - direction.
 
 The impact is modelled using the **Hunt-Crossley method**, details below.
 
@@ -28,6 +27,8 @@ Notes
 - The *force related terms*, such as *spring energy* and the *H-C hysteresis
   curves* take a long time to calculate. Hence this may be suppressed by
   setting *force_display* = False.
+- The integration with the parameters as given takes about 15 min on a decent
+  PC.
 
 **Parameters and Variables**
 
@@ -63,18 +64,10 @@ from scipy.optimize import minimize, root
 from scipy.integrate import solve_ivp
 import itertools as itt
 from matplotlib import animation
-from IPython.display import HTML
 import matplotlib
 from matplotlib import patches
 import matplotlib.pyplot as plt
-
-import os
-%matplotlib inline
-import time
 matplotlib.rcParams['animation.embed_limit'] = 2**128
-
-start = time.time()
-
 
 force_display = True
 
@@ -116,7 +109,7 @@ def gesamt1(x, amplitude, frequenz):
     return gesamt
 
 
-r_max = ((sm.S(1.) + (gesamt1(x, amplitude, frequenz).diff(x))**2 )**sm.S(3/2)/
+r_max = ((sm.S(1.) + (gesamt1(x, amplitude, frequenz).diff(x))**2)**sm.S(3/2) /
          gesamt1(x, amplitude, frequenz).diff(x, 2))
 
 # %%
@@ -127,16 +120,16 @@ r_max = ((sm.S(1.) + (gesamt1(x, amplitude, frequenz).diff(x))**2 )**sm.S(3/2)/
 # When the ellipse hits the street, the tangent at the ellipse at the hitting
 # point, and the tangent at the street at the hitting point must be parallel.
 # So, look for the point where the ellipse would touch the street if it was
-# 'inflated' just by the right amount to touch the street for every point of
+# 'inflated' by just the right amount to touch the street for every point of
 # the integration time. This sequence of potential hitting points will
 # eventually give the real hitting point.
 #
 # - let :math:`CP_{hs}` be the point of the street where a multiple of the
 #   vector :math:`\hat n` which is normal to the tanget of the ellipse at
-#   :math:`CP_h \in \cdot \textrm{circumference of ellipse}`  intersects with
-#   the street below
+#   :math:`CP_h \in \textrm{circumference of ellipse}`  intersects with
+#   the street below.
 # - is the tangent of the ellipse at :math:`CP_h` parallel to the tangent of
-#   the street at :math:`CP_{hs}?
+#   the street at :math:`CP_{hs}`?
 # - if YES, :math:`CP_{hs}` is a potential impact point.
 # - collect all potential impact points, and select the one closest to the
 #   ellipse. This is the point the ellipse would touch, if it were 'blown up'
@@ -148,44 +141,51 @@ r_max = ((sm.S(1.) + (gesamt1(x, amplitude, frequenz).diff(x))**2 )**sm.S(3/2)/
 #
 # To get the derivative of the ellipse at the point
 # :math:`(x, y) \in \textrm{circumference of ellipse}` calculate:
-# :math:`\dfrac{d}{dx}(\dfrac{x^2}{a^2}  +   \dfrac{y^2}{b^2} =  1.)`
-# to get: :math:`\dfrac{dy}{dx} = - \dfrac{b^2}{a^2} \cdot \dfrac{x}{y}  `
-# for :math:`y \neq 0` hence the normalized tanget vector is
-# :math:`t_{textrm{ellipse}} = (\hat{ A.x + \dfrac{dy}{dx} \cdot A.y})  `
-# for :math:`  y \neq 0`
-# :math:`t_{\textrm{ellipse}}` = +/-$A.y` for :math:`y = 0.`
+# :math:`\dfrac{d}{dx}(\dfrac{x^2}{a^2}  + \dfrac{y^2}{b^2} = 1)`
+#
+# to get:
+#
+# :math:`\dfrac{dy}{dx} = - \dfrac{b^2}{a^2} \cdot \dfrac{x}{y}`
+# for :math:`y \neq 0`
+#
+# hence the normalized tanget vector is
+#
+# :math:`t_{\textrm{ellipse}} = (\hat{ A.x + \dfrac{dy}{dx} \cdot A.y})`
+# for :math:`y \neq 0`
+#
+# :math:`t_{\textrm{ellipse}} = +/- A.y` for :math:`y = 0.`
 #
 # Therefore the normal vector in the **unrotated** ellipse is:
+#
 # :math:`\hat n = (\hat{ \dfrac{dy}{dx} \cdot A.x - A.y})` for :math:`y \neq 0`
 #
-# :math:`\hat n =   A.x` for :math:`y = 0., x = a`
+# :math:`\hat n =   A.x` for :math:`y = 0, x = a`
 #
-# :math:`\hat n$ = -$A.x for :math:`y = 0., x = -a`
+# :math:`\hat n = -A.x` for :math:`y = 0, x = -a`
 #
 # To get :math:`\hat n` in the ellipse **rotated by q**, one calculates:
-# :math:`\hat n_{rotated   by   q} = A(q)^T \cdot \hat n`
+# :math:`\hat n_{\textrm{rotated by q}} = A(q)^T \cdot \hat n`
 #
 # Find the **location** of :math:`CP_{hs}`	:
-# :math:`CP_{hs} \in gesamt(x, parameters)`	 where the function
+# :math:`CP_{hs} \in` gesamt(x, parameters)	where the function
 # *gesamt(x, parameters)* models the street
 #
 # Let :math:`l = |{}^{CP_{hd}} r^{CP_h}| = |l \hat n|`, then we get two
 # equations:
 #
-# :math:`(l\hat n \cdot N.x) = x`
-# :math:`(l\hat n \cdot N.y) = gesamt(x),  `
+# - :math:`(l\hat n \cdot N.x) = x`
+# - :math:`(l\hat n \cdot N.y) = gesamt(x),`
 #
 # to be solved during each step of the numerical integration.
-# Solved only if :math:`\hat n \cdot N.y \leq 0`. For the shape
-# of the street, this seems adequate and saves integration time.
+# However, during integration solved only if :math:`\hat n \cdot N.y \leq 0`.
+# For the shape of the street, this seems adequate and reduces running time.
 #
-# :math:`\sin(\theta) = |   tanget_{ellipse} \times tangent_{street}   |`
+# :math:`\sin(\theta) = |  \textrm{tangent}_{\textrm{ellipse}} \times
+# \textrm{tangent}_{\textrm{street}}   |`
 # is taken as a measure how 'parallel' the tangents at the collision points
 # are, where the tangents are unit vectors, and :math:`\theta` is the angle
 # between them.
-
-# %%
-# define the center of the ellipse
+#
 Dmc.set_pos(P0, mx*N.x + my*N.y)
 Dmc.set_vel(N, umx*N.x + umy*N.y)
 # define the 'observer'
@@ -193,41 +193,42 @@ Po.set_pos(Dmc, alpha*a*A.x + beta*b*A.y)
 Po.v2pt_theory(Dmc, N, A)
 
 
-#find the vector normal to the tanget at the unrotated ellipse at the point CPh
+# find the vector normal to the tanget at the unrotated ellipse
+# at the point CPh
 delta, l = sm.symbols('delta, l')
 
 CPhx = a * sm.cos(delta)
 CPhy = b * sm.sin(delta)
 
 ausdruckk = (sm.Abs(CPhy) <= 1.e-15)
-ausdruckg = (sm.Abs(CPhy) >  1.e-15)
+ausdruckg = (sm.Abs(CPhy) > 1.e-15)
 
 dydx = sm.Piecewise((-b**2/a**2 * CPhx/CPhy, ausdruckg), (1.e15, ausdruckk),
                     (1., True))
 that0 = (A.x + dydx*A.y).normalize()
 
-hilfsx = sm.Piecewise((1., delta == sm.S(0)), (-1., delta == sm.pi ),
+hilfsx = sm.Piecewise((1., delta == sm.S(0)), (-1., delta == sm.pi),
                       (-dydx, delta < sm.pi/2.), (-dydx, delta < sm.pi),
                       (dydx, delta < 3./2.*sm.pi), (dydx, delta < 2.*sm.pi),
-                      (1., True) )
+                      (1., True))
 hilfsy = sm.Piecewise((0., ausdruckk), (1., delta < sm.pi/2.),
                       (1., delta < sm.pi), (-1.,  delta < 3./2.*sm.pi),
-                      (-1,     delta < 2.*sm.pi), (1., True) )
+                      (-1, delta < 2.*sm.pi), (1., True))
 
 nhat0 = hilfsx*A.x + hilfsy*A.y
 
 # rotated the normal vector
 A1 = A.dcm(N).T
-print('A1 = ', '\n',A1, '\n')
+print('A1 = ', '\n', A1, '\n')
 nhat1 = A1 @ sm.Matrix([hilfsx, hilfsy, 0.])
 that1 = A1 @ sm.Matrix([1., dydx, 0.])
 nhat = (nhat1[0]*N.x + nhat1[1]*N.y).normalize()
 that = (that1[0]*N.x + that1[1]*N.y).normalize()
-print('nhat DS',me.find_dynamicsymbols(nhat, reference_frame=N))
+print('nhat DS', me.find_dynamicsymbols(nhat, reference_frame=N))
 print('nhat FS', nhat.free_symbols(reference_frame=N))
 
 # define CPh and CHhs
-CPh.set_pos(Dmc, CPhx*A.x + CPhy*A.y )
+CPh.set_pos(Dmc, CPhx*A.x + CPhy*A.y)
 CPh.v2pt_theory(Dmc, N, A)
 
 CPhs.set_pos(CPh, l*nhat)
@@ -243,10 +244,10 @@ print((f'CPhs_ort has {sm.count_ops(CPhs_ort)} operations. After cse it has '
 
 strasse = gesamt1(x, amplitude, frequenz)
 strassedx = strasse.diff(x)
-tangente_strasse = (N.x + strassedx *N.y).normalize()
+tangente_strasse = (N.x + strassedx * N.y).normalize()
 parallel = (that.cross(tangente_strasse)).magnitude()
 
-print('parallel FS',parallel.free_symbols)
+print('parallel FS', parallel.free_symbols)
 
 parallel_lam = sm.lambdify([q, mx, my] + [x, delta, a, b, amplitude, frequenz],
                            parallel, cse=True)
@@ -269,19 +270,19 @@ senkrecht_lam = sm.lambdify((q, delta, a, b), senkrecht, cse=True)
 # %%
 # Force and Friction on :math:`CP_h` during impact
 #
-# **Force acting on :math:`CP_h` during impact**
-# I use Hunt_Crossley's method to calculate it.
+# Force acting on :math:`CP_h` during impact
+# Hunt_Crossley's method is used to calculate it.
 #
-# *Hunt Crossley's method*
+# **Hunt Crossley's method**
 #
 # This article is the reference for the Hunt-Crossley method:
 # https://www.sciencedirect.com/science/article/pii/S0094114X23000782
 #
 #
 # This is with dissipation during the collision, the general force is given in
-# (63) as
+# equation (63) of this article as
 # :math:`f_n = k_0 \cdot \rho + \chi \cdot \dot \rho`, with :math:`k_0` as
-# above, :math:`\rho` the penetration, and :math:`\dot\rho` the speed of the
+# below, :math:`\rho` the penetration, and :math:`\dot\rho` the speed of the
 # penetration. In the article it is stated, that :math:`n = \frac{3}{2}` is a
 # good choice, it is derived in Hertz' approach. Of course,
 # :math:`\rho, \dot\rho` must be the signed magnitudes of the respective
@@ -293,12 +294,17 @@ senkrecht_lam = sm.lambdify((q, delta, a, b), senkrecht, cse=True)
 #
 # **Hunt and Crossley** give this value for :math:`\chi`, see table 1:
 #
-# :math:`\chi = \dfrac{3}{2} \cdot(1 - c_\tau) \cdot \dfrac{k_0}{\dot \rho^{(-)}}`,
+# :math:`\chi = \dfrac{3}{2} \cdot(1 - c_\tau) \cdot \dfrac{k_0}{\dot
+# \rho^{(-)}}`,
+#
 # where :math:`c_\tau = \dfrac{v_1^{(+)} - v_2^{(+)}}{v_1^{(-)} - v_2^{(-)}}`,
-# where :math:`v_i^{(-)}, v_i^{(+)}$ are the speeds of :math:`body_i`, before
-# and after the collosion, see (45), :math:`\dot\rho^{(-)}` is the speed right
-# at the time the impact starts. :math:`c_\tau` is an experimental factor,
-# apparently around 0.8 for steel.
+#
+# where :math:`v_i^{(-)}, v_i^{(+)}` are the speeds of :math:`body_i`, before
+# and after the collosion, see (45),
+#
+# :math:`\dot\rho^{(-)}` is the speed right at the time the impact starts.
+#
+# :math:`c_\tau` is an experimental factor, apparently around 0.8 for steel.
 #
 # Using (64), this results in their expression for the force:
 #
@@ -306,61 +312,75 @@ senkrecht_lam = sm.lambdify((q, delta, a, b), senkrecht, cse=True)
 # \dfrac{\dot\rho}{\dot\rho^{(-)}}\right]`
 #
 # with :math:`k_0 = \frac{4}{3\cdot(\sigma_1 + \sigma_2)} \cdot
-# \sqrt{\frac{R_1 \cdot R_2}{R_1 + R_2}}`, where :math:`\sigma_i =
-# \frac{1 - \nu_i^2}{E_i}`, with :math:`\nu_i` = Poisson's ratio, :math:`E_i`
-# = Young"s modulus, :math:`R_1, R_2` the radii of the colliding bodies,
-# :math:`\rho` the penetration depth. All is near equations (54) and (61) of
-# this article.
+# \sqrt{\frac{R_1 \cdot R_2}{R_1 + R_2}}`,
+# where
+#
+# :math:`\sigma_i = \frac{1 - \nu_i^2}{E_i}`,
+#
+# with
+#
+# :math:`\nu_i` = Poisson's ratio, :math:`E_i` = Youngs modulus,
+# :math:`R_1, R_2` the radii of the colliding bodies,
+# :math:`\rho` the penetration depth.
+#
+# All is near equations (54) and (61) of this article.
 #
 # 1. Penetration depth :math:`\rho`:
-# From the description in the cell above, it is clear that
+#
+# From the description above, it is clear that
 # :math:`\rho = |l| \cdot H(-l)`, with :math:`l` from above (found numerically)
-# , and :math:`H(...)` being the heaviside function.
+# , and :math:`H(...)` being the Heaviside function (step function).
 #
 #
 # 2. Determine :math:`R_1, R_2` in the above formulas:
+#
 # For a function :math:`y = f(x)` the signed curvature is:
 # :math:`\kappa = \dfrac{\frac{d^2}{dx^2} f(x)}{(1 + (\frac{d}{dx} f(x))^2)^
 # {\frac{3}{2}}}`
+#
 # For an ellipse, :math:`\kappa = \dfrac{a \cdot b}{ \left( \sqrt{a^2
 # \sin^2(\delta) + b^2 \cos^2(\delta)} \right)^3}  > 0     \forall \delta
-# \in [0, 2 \pi),  ` where :math:`\delta` is the angle from :math:`A.x` to the
+# \in [0, 2 \pi)` where :math:`\delta` is the angle from :math:`A.x` to the
 # point.
 # As an approximation for :math:`R_1, R_2` I take the radius of the osculating
 # circle, which is:
-# :math:`R_i = \dfrac{1}{\kappa_i}  ` If the penetration depth is no too large,
+# :math:`R_i = \dfrac{1}{\kappa_i}` If the penetration depth is no too large,
 # this should be o.k.
 # Note,that *negative* :math:`R_2` are allowed: This means, the street is
 # concave from the ellipse's point of view.
 # At a contact point, either :math:`R_2 > 0` or :math:`|R_2| \leq R_1` there
 # should be no problems.
+#
 # Unclear whether this approach is within the **validity of the H-C method**
 #
-# 3. Penetration speed :math:`\frac{d}{dt} \rho(t)`
+# 3. Penetration speed
+#
+# :math:`\frac{d}{dt} \rho(t)`
 # Only the component of :math:`\frac{d}{dt} CP_h(t)` is relevant, hence:
 # :math:`\frac{d}{dt} \rho(t) = \frac{d}{dt} CP_h \cdot \hat n`
 #
-# *spring energy* =   :math:`k_0 \cdot \int_{0}^{\rho} k^{3/2}\,dk = k_0
+# *spring energy* = :math:`k_0 \cdot \int_{0}^{\rho} k^{3/2}\,dk = k_0
 # \cdot\frac{2}{5} \cdot \rho^{5/2}`
 # The article does not give a closed form for the dissipated energy.
 #
-# *Note*
+# Note
+#
 # :math:`c_\tau = 1.` gives **Hertz's** solution to the impact problem, also
 # described in the article.
 #
-#
-# **Friction when the ellipse hits the street**\
+# 4. Friction when the ellipse hits the street
 #
 # It acts on :math:`CP_h`
-# :math:`|friction force| = |impact force| \cdot reibung \cdot |\bar v(CP_h)
-# \bot \hat n |  $ and opposite in direction to the component of
-# :math:`\bar v(CP_h) \bot \hat n`
+#
+# :math:`|\textrm{friction force}| = |\textrm{impact force}| \cdot
+# \textrm{reibung} \cdot |\bar v(CP_h)\bot \hat n |` and opposite in direction
+# to the component of :math:`\bar v(CP_h) \bot \hat n`
 #
 
-# %%
-# impact force on CPh
-# curvature of the ellipse at the point (a*cos(delta) / b*sin(delta))
-# from the internet
+# impact force on :math:`CP_h`
+#
+# curvature of the ellipse at the point :math:`P((a \cos(\delta) | b
+# \sin(\delta))`,  from the internet:
 kappa1 = (a * b) / (sm.sqrt((a*sm.sin(delta))**2 + (b*sm.cos(delta))**2))**3
 
 # formula for the curvature of a function. From the internet.
@@ -390,9 +410,6 @@ fHC = fHC_betrag * (-nhat) * sm.Heaviside(-l, sm.S(0))
 print('fHC DS', me.find_dynamicsymbols(fHC, reference_frame=N))
 print('fHC FS', fHC.free_symbols(reference_frame=N))
 
-
-
-#This would be the friction force. As explained above, it does not work.
 # friction force on CPh
 that = me.dot(nhat, N.y)*N.x - me.dot(nhat, N.x)*N.y
 vCPh = (me.dot(CPh.pos_from(P0).diff(t, N), that)).subs(
@@ -404,14 +421,10 @@ F_friction = (fHC.magnitude() * reibung * vCPh * (-that)
 print('F_friction DS', me.find_dynamicsymbols(F_friction, reference_frame=N))
 print('F_friction FS', F_friction.free_symbols(reference_frame=N))
 
-# %% [markdown]
-# **Kane's equations**\
-# There is nothing special here.
-
 # %%
-start1 = time.time()
-I = me.inertia(A, 0., 0., iZZ)
-bodye = me.RigidBody('bodye', Dmc, A, m, (I, Dmc))
+# Kane's equations.
+Ie = me.inertia(A, 0., 0., iZZ)
+bodye = me.RigidBody('bodye', Dmc, A, m, (Ie, Dmc))
 Poa = me.Particle('Poa', Po, mo)
 BODY = [bodye, Poa]
 
@@ -437,14 +450,11 @@ print('MM free symbols', MM.free_symbols)
 print((f'MM has {sm.count_ops(MM)} operations, {sm.count_ops(sm.cse(MM))} '
        f'operations after cse', '\n'))
 
-print(f'it took {time.time() - start1 :.5f} sec to establish Kanes equations')
-
 # %%
-# **Lambdify the functions**
+# Lambdify the functions
 #
-# Calculate the exypressions for the energies.
+# Calculate the expressions for the energies.
 
-start1 = time.time()
 pot_energie = (m * g * me.dot(Dmc.pos_from(P0), N.y) + mo * g
                * me.dot(Po.pos_from(P0), N.y))
 kin_energie = sum([koerper.kinetic_energy(N) for koerper in BODY])
@@ -452,7 +462,7 @@ spring_energie = 2./5. * k0 * sm.Abs(l)**(5/2) * sm.Heaviside(-l, 0.)
 
 qL = q_ind + u_ind
 pL = [x, l, delta] + [m, mo, g, a, b, iZZ, alpha, beta, amplitude,
-      frequenz, reibung] + [ctau, EYe, EYs, nue, nus, rhodtmax]
+                      frequenz, reibung] + [ctau, EYe, EYs, nue, nus, rhodtmax]
 
 MM_lam = sm.lambdify(qL + pL, MM, cse=True)
 force_lam = sm.lambdify(qL + pL, force, cse=True)
@@ -463,28 +473,27 @@ gesamt_lam = sm.lambdify([x, amplitude, frequenz], gesamt, cse=True)
 
 Po_ort_lam = sm.lambdify([q, mx, my] + [a, b, alpha, beta],
                          [me.dot(Po.pos_from(P0), uv)
-                        for uv in (N.x, N.y)], cse=True)
+                          for uv in (N.x, N.y)], cse=True)
 
 pot_lam = sm.lambdify(qL + pL, pot_energie, cse=True)
 kin_lam = sm.lambdify(qL + pL, kin_energie, cse=True)
 spring_lam = sm.lambdify(qL + pL, spring_energie, cse=True)
 
 r_max_lam = sm.lambdify([x, amplitude, frequenz], r_max, cse=True)
-k0_lam = sm.lambdify(qL + pL, k0*sm.Heaviside(-l, 0), cse = True)
-print(f'it took {time.time() - start1 :.5f} sec to do the lambdification')
+k0_lam = sm.lambdify(qL + pL, k0*sm.Heaviside(-l, 0), cse=True)
 
 # %%
 # Numerical integration
 # ---------------------
 # - the parameters and the initial values of independent coordinates are set.
-# - an exception is raised if :math:\alpha or :math:\beta are selected such
+# - an exception is raised if :math:`\alpha` or :math:`\beta` are selected such
 #   that the particle will be outside of the ellipse.
 # - Check whether the minimum osculating cycle of the street is smaller than
 #   *max(a, b)*.
 #
 # Plot the initial location of the ellipse. This plot also give possible
 # contact points. The closest one is marked on the street.
-# Making :math:`EY_e$ or :math:`EY_s$ too large results in a stiff system.
+# Making :math:`EY_e` or :math:`EY_s` too large results in a stiff system.
 # The simulation becomes inaccurate, unless *max_step* is made very small.
 
 # Input parameters
@@ -512,13 +521,12 @@ u1 = 5.5
 mx1 = 2.5
 my1 = 6.
 umx1 = 0.
-umy1 = -4.0
+umy1 = -4.5
 
 intervall = 5.0
 # max sin(angle) how the tangents of the street and the ellipse may differ
 # for a contact point
 min_winkel = 0.1
-#==============================================
 
 if alpha1**2/a1**2 + beta1**2/b1**2 >= 1.:
     raise Exception('Particle is outside the ellipse')
@@ -528,13 +536,16 @@ iZZ1 = 0.25 * m1 * (a1**2 + b1**2)   # from the internet
 # the function.
 schritte = int(intervall * 568.)
 
-#Find the largest admissible r_max, given strasse, amplitude, frequenz
+# Find the largest admissible r_max, given strasse, amplitude, frequenz
 r_max = max(a1**2/b1, b1**2/a1)  # max osculating circle of an ellipse
+
+
 def func2(x, args):
-# just needed to get the arguments matching for minimize
+    # just needed to get the arguments matching for minimize
     return np.abs(r_max_lam(x, *args))
 
-x0 = 0.1            # initial guess
+
+x0 = 0.1  # initial guess
 minimal = minimize(func2, x0, [amplitude1, frequenz1])
 if r_max < (x111 := minimal.get('fun')):
     print(('selected r_max of the ellipse = {} is less than the minimal '
@@ -545,16 +556,17 @@ else:
            'osculating circle of the street = {:.2f}')
           .format(r_max, x111), '\n')
 
-
-
 # numerically find x1 = X coordinate of CPhs and l1 := distance
 # from CPh to CPhs for the initial condition
 # and make a plot of the initial situation
+
+
 def func_x1_l1(x0, args):
     return CPhs_ort_lam(*x0, *args).reshape(2)
 
+
 delta1 = 0.    # of no consequence, any value will do
-rhodtmax1 = 1.    #     dto.
+rhodtmax1 = 1.    # dto.
 
 
 TEST = []
@@ -572,7 +584,7 @@ for epsilon in np.linspace(1.e-15, 2.*np.pi, int(25/min_winkel)):
                         frequenz1) < min_winkel:
             TEST1.append(liste_lam(q1, mx1, my1, epsilon, a1, b1))
             TEST.append((*x0, epsilon))
-kontakt = min(TEST, key = lambda k: k[1])
+kontakt = min(TEST, key=lambda k: k[1])
 
 Cax = np.array([TEST1[i][0][0] for i in range(len(TEST1))])
 Cay = np.array([TEST1[i][0][1] for i in range(len(TEST1))])
@@ -598,19 +610,18 @@ for i in range(len(Cax)):
     x_werte = [Cax[i], Cex[i]]
     y_werte = [Cay[i], Cey[i]]
     ax.plot(x_werte, y_werte)
-    ax.arrow(Cax[i], Cay[i], Cex[i]-Cax[i], Cey[i]- Cay[i], shape='full',
+    ax.arrow(Cax[i], Cay[i], Cex[i]-Cax[i], Cey[i] - Cay[i], shape='full',
              width=0.025)
 ax.set_title((f'possible contact points are where the tangents of street and '
-             f'ellipse differ by less than '
-             f'{np.rad2deg(np.arcsin(min_winkel)):.1f}° \n The blue dot '
-             f'indicates the closest one' ))
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+              f'ellipse differ by less than '
+              f'{np.rad2deg(np.arcsin(min_winkel)):.1f}° \n The blue dot '
+              f'indicates the closest one'))
 
 pL = [x, l, delta] + [m, mo, g, a, b, iZZ, alpha, beta, amplitude,
-            frequenz, reibung] + [ctau, EYe, EYs, nue, nus, rhodtmax]
+                      frequenz, reibung] + [ctau, EYe, EYs, nue, nus, rhodtmax]
 pL_vals = [kontakt[0], kontakt[1], delta1] + \
-    [m1, mo1, g1, a1, b1, iZZ1, alpha1, beta1, amplitude1, frequenz1, reibung1] + \
-        [ctau1, EYe1, EYs1, nue1, nus1, rhodtmax1]
+    [m1, mo1, g1, a1, b1, iZZ1, alpha1, beta1, amplitude1,
+     frequenz1, reibung1] + [ctau1, EYe1, EYs1, nue1, nus1, rhodtmax1]
 
 
 print('Initial parameters are:', pL_vals, '\n')
@@ -619,20 +630,16 @@ print('starting values are:   ', y0)
 
 # %%
 # Here the actual **integration** starts.
-# *cut_off* determines, after how many such failures the integration should
-# stop with an exception. This just to avoid endless looping of the
-# integration.
+# *cut_off* determines, after how many failures to find contact points the
+# integration should stop with an exception. This to avoid endless looping of
+# the integration if root does not find a solution.
 #
-# **scipy.optimize.root**, but only with *method=broyden1* works much better
-# than *fsolve*. In the preliminary tests, it always find a solution
+# *scipy.optimize.root*, but only with *method=broyden1* works much better
+# than *fsolve*. In the preliminary tests, it always found a solution
 # immediately, or else it terminates with an error like 'jacobian is singular'
 # or similar.
 
-# %%
-
 cut_off = 25
-
-start1 = time.time()
 
 x0 = list((pL_vals[0], pL_vals[1]))  # initial guess for fsolve
 # root checks zaehler/min_winkel locations around the circumference of the
@@ -642,6 +649,7 @@ zaehler = 25
 zaehler1 = zaehler
 nixwars = 0
 
+
 def gradient(t, y, args):
     global x0, zaehler1, nixwars
 
@@ -649,7 +657,8 @@ def gradient(t, y, args):
     TEST = []
     for epsilon in np.linspace(1.e-18, 2.*np.pi, int(zaehler1/min_winkel)):
         if nhat_lam(y[0], epsilon, a1, b1)[1] <= 0.:
-            args1 = list((y[0], y[1], y[2], a1, b1, amplitude1, frequenz1, epsilon))
+            args1 = list((y[0], y[1], y[2], a1, b1, amplitude1, frequenz1,
+                          epsilon))
             for _ in range(2):
                 ergebnis = root(func_x1_l1, x0, args1, method='broyden1')
                 x0 = ergebnis.x
@@ -665,13 +674,13 @@ def gradient(t, y, args):
                 TEST.append((args[0], args[1], epsilon, t))
 
     if len(TEST) > 0:
-        kontakt = min(TEST, key = lambda k: k[1])
+        kontakt = min(TEST, key=lambda k: k[1])
         args[0] = kontakt[0]
         args[1] = kontakt[1]
         args[2] = kontakt[2]
         zaehler1 = zaehler
     else:
-    # find a new initial guess at random
+        # find a new initial guess at random
         hilfsort = np.random.choice(np.linspace(-10., 10., 100))
         x0 = list((hilfsort, gesamt_lam(hilfsort, amplitude1, frequenz1)))
         # look for a possible contact point with smaller spacing
@@ -696,34 +705,30 @@ def gradient(t, y, args):
 times = np.linspace(0., intervall, schritte)
 t_span = (0., intervall)
 
-fname = 'ellipse-bouncing-solution.csv'
-if os.path.exists(fname) is False:
-    resultat1 = solve_ivp(gradient, t_span, y0, t_eval = times, args=(pL_vals,),
+#fname = 'ellipse-bouncing-solution.csv'
+#if os.path.exists(fname) is False:
+resultat1 = solve_ivp(gradient, t_span, y0, t_eval=times, args=(pL_vals,),
                       atol=1.e-4, rtol=1.e-4, method='BDF')
-    #np.savetxt(fname, resultat1.y, fmt='%.12f')
-    resultat = resultat1.y.T
-    print('Shape of result: ', resultat.shape)
-    print(resultat1.message)
-    print('the integration made {} function calls. It took {:.3f} sec'
-          .format(resultat1.nfev, time.time() - start1))
-else:
-    resultat = np.loadtxt(fname).T
-
-# %% [markdown]
-# Plot the generalized coordinates you want to see.
+resultat = resultat1.y.T
+print('Shape of result: ', resultat.shape)
+print(resultat1.message)
+print('the integration made {} function calls.'.format(resultat1.nfev))
+#else:
+#    resultat = np.loadtxt(fname).T
 
 # %%
+# Plot the generalized coordinates you want to see.
 fig, ax = plt.subplots(figsize=(10, 5))
 bezeichnung = ['q', 'mx', 'my', 'u', 'umx', 'umy']
-for i in (0, 1, 2, 3, 4, 5 ):
+for i in (0, 1, 2, 3, 4, 5):
     ax.plot(times[: resultat.shape[0]], resultat[:, i], label=bezeichnung[i])
 ax.set_xlabel('time (sec)')
 ax.set_ylabel('units depend on which gen. coordinates were selected')
 ax.set_title('generalized coordinates')
-ax.legend();
+_ = ax.legend()
 
 # %%
-# **Location and distance of contact point**
+# Location and distance of contact point
 #
 # The distance is needed for the spring energy and the H-C hysteresis curves
 # below.The closest distance to a possible contact point is available only
@@ -731,11 +736,13 @@ ax.legend();
 # This is time consuming.
 
 # %%
+
+
 def nachrechnen():
     x0 = list((-100., 100.))
     kontakte = []
     for i in range(schritte):
-        q1  = resultat[i, 0]
+        q1 = resultat[i, 0]
         mx1 = resultat[i, 1]
         my1 = resultat[i, 2]
 
@@ -749,16 +756,15 @@ def nachrechnen():
                 ergebnis = root(func_x1_l1, x0, args1, method='broyden1')
                 x0 = ergebnis.x
                 x1 = x0[0]
-                l1 = x0[1]
 
                 if parallel_lam(q1, mx1, my1, x1, epsilon, a1, b1, amplitude1,
                                 frequenz1) < min_winkel:
                     TEST.append((*x0, epsilon))
         if len(TEST) > 0:
-            kontakt = min(TEST, key = lambda k: k[1])
+            kontakt = min(TEST, key=lambda k: k[1])
         else:
             # simply attach the last 'valid' contact point data
-            kontakt =[kontakt[0], kontakt[1], epsilon]
+            kontakt = [kontakt[0], kontakt[1], epsilon]
 
         kontakte.append(kontakt)
 
@@ -767,37 +773,36 @@ def nachrechnen():
         raise Exception('something is wrong!')
     return kontakte
 
-if force_display == True:
-    start1 = time.time()
+
+if force_display is True:
     kontakte = nachrechnen()
-    fig, ax = plt.subplots(figsize=(10,5))
-    ax.plot(times, kontakte[:, 1])
-    ax.set_title('distance of contact point from the ellipse')
-    ax.set_xlabel('time (sec)')
-    ax.set_ylabel('distance (m)');
-    print((f'it took {(time.time() - start1):.3f} sec to calculate the '
-           f'contact points again'))
+    fig, ax = plt.subplots(2, 1, figsize=(10, 5), layout='constrained')
+    ax[0].plot(times, kontakte[:, 1])
+    ax[0].set_title('distance of contact point from the ellipse')
+    ax[0].set_xlabel('time (sec)')
+    ax[0].set_ylabel('distance (m)')
 
     test1 = []
     test2 = []
     for i in range(len(kontakte)):
         if kontakte[i, 1] <= 0.:
-            test1. append(times[i])
+            test1.append(times[i])
             test2.append(kontakte[i, 1])
-    fig, ax = plt.subplots(figsize=(10,5))
-    ax.plot(test1, test2)
-    ax.set_title('Penetration close up view')
-    ax.set_xlabel('time (sec)')
-    ax.set_ylabel('penetration depth (m)')
+
+    ax[1].plot(test1, test2)
+    ax[1].set_title('Penetration close up view')
+    ax[1].set_xlabel('time (sec)')
+    _ = ax[1].set_ylabel('penetration depth (m)')
     print((f'There are {len(test1)} points where penetration takes place, '
            f'{(len(test1)/schritte * 100):.3f} % of total points'))
 else:
     pass
 
 # %%
-# **Energies of the system**
-# For :math:`c_{\tau} = 1` total energy should be constant, else it should
-# drop.
+# Energies of the system
+#
+# For :math:`c_{\tau} = 1` and reibung = 0.0, the total energy should be
+# constant, else it should drop.
 # The spring energy is wrong sometimes. Maybe this is the reason:
 # The penetration depths are calculated again, see above. This may not give the
 # same values as the ones used during the integration.
@@ -813,7 +818,7 @@ total_np = np.empty(schritte)
 total1_np = np.empty(schritte)
 
 for i in range(schritte):
-    if force_display == True:
+    if force_display is True:
         pL_vals[1] = kontakte[i, 1]
         pL_vals[2] = kontakte[i, 2]
 
@@ -827,7 +832,7 @@ for i in range(schritte):
     total1_np[i] = kin_np[i] + pot_np[i]
 
 fig, ax = plt.subplots(figsize=(10, 5))
-if show_spring == True and force_display == True:
+if show_spring is True and force_display is True:
     ax.plot(times, pot_np, label='potential energy')
     ax.plot(times, kin_np, label='kinetic energy')
     ax.plot(times, spring_np, label='spring energy')
@@ -839,8 +844,9 @@ else:
 
 ax.set_xlabel('time (sec)')
 ax.set_ylabel("energy (Nm)")
-ax.set_title(f'Energies of the system, with ctau = {ctau1}')
-ax.legend();
+ax.set_title(f'Energies of the system, with ctau = {ctau1}, '
+             f'friction = {reibung1}')
+_ = ax.legend()
 total_max = np.max(total_np)
 total_min = np.min(total_np)
 if ctau1 == 1.:
@@ -850,7 +856,6 @@ if ctau1 == 1.:
 # %%
 # Hunt-Crossley Hysteresis Curve
 # ------------------------------
-
 # The H-C model of impact, when the force is plotted against the penetration
 # depth should give a *hysterisis curve*. This is done here.
 # The black numbers on the graph give the approximate time of the 'process' of
@@ -862,13 +867,13 @@ if ctau1 == 1.:
 # not necessarily nested as in other examples.
 
 # %%
-if force_display == True:
-# Select approx. how many times should be printed on the graph
-# select, which hystersis curves you want to see
-#=======================
+if force_display is True:
+    # Select approx. how many times should be printed on the graph
+    # select, which hystersis curves you want to see
+    # =======================
     zeitpunkte = 5
     ansehen = [0, 2, 4]
-#=======================
+    # =======================
     ansehen = sorted(ansehen)
     fHC_betrag_lam = sm.lambdify(qL + pL, fHC_betrag, cse=True)
 
@@ -905,7 +910,7 @@ if force_display == True:
             HC_displ.append(abstand)
             HC_kraft.append(kraft0)
             HC_times.append((zaehler, times[i]))
-            zaehler +=1
+            zaehler += 1
 
 # separate the lists at the marker. Found it in stack overflow
     HC_kraft1 = [list(y) for x, y in itt.groupby(HC_kraft, lambda z: z == 'X')
@@ -926,9 +931,9 @@ if force_display == True:
     Test = matplotlib.colors.Normalize(0, len(HC_kraft1))
     Farbe = matplotlib.cm.ScalarMappable(Test, cmap='plasma')
     # color of the starting position
-    farben = [Farbe.to_rgba(l) for l in range(len(HC_kraft1))]
+    farben = [Farbe.to_rgba(l1) for l1 in range(len(HC_kraft1))]
 
-    fig, ax = plt.subplots(figsize=(10,5))
+    fig, ax = plt.subplots(figsize=(10, 5))
     for i, j in enumerate(ansehen):
 
         ax.plot(HC_displ1[j], HC_kraft1[j], color=farben[j])
@@ -940,7 +945,7 @@ if force_display == True:
         reduction = max(1, int(len(HC_times1[j])/zeitpunkte))
         for k in range(len(HC_times1[j])):
             if k % reduction == 0:
-                coord  = HC_times1[j][k][0] - abzug[j]
+                coord = HC_times1[j][k][0] - abzug[j]
 
                 ax.text(HC_displ1[j][coord], HC_kraft1[j][coord],
                         f'{HC_times1[j][k][1]:.3f}', color="black")
@@ -955,12 +960,10 @@ else:
 # street at this specific point in time. (if *force_display = False* the
 # contact points were not calculated, and cannot be shown.)
 
-# %%
-#======================
 schrittzahl = 500
-#======================
 
 faktor = max(1, int(resultat.shape[0] / schrittzahl))
+
 resultat1 = []
 times1 = []
 kontakte1 = []
@@ -970,15 +973,15 @@ for i in range(resultat.shape[0]):
         times1.append(times[i])
 
 schritte1 = len(times1)
-if force_display == False:
-        kontakte1 = [[1000., 1000.] for i in range(schritte1)]
+if force_display is False:
+    kontakte1 = [[1000., 1000.] for i in range(schritte1)]
 else:
     kontakte1 = []
     for i in range(resultat.shape[0]):
         if i % faktor == 0:
             kontakte1.append(kontakte[i])
 
-print('points in time considered: ',len(times1))
+print('points in time considered: ', len(times1))
 resultat1 = np.array(resultat1)
 times1 = np.array(times1)
 kontakte1 = np.array(kontakte1)
@@ -1008,6 +1011,7 @@ if u1 > 0.:
 else:
     wohin = 'right'
 
+
 def animate_pendulum(times, x1, y1, z1):
 
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw={'aspect': 'equal'})
@@ -1017,23 +1021,21 @@ def animate_pendulum(times, x1, y1, z1):
     ax.set_ylim(ymin - 1.*cc, ymax + 1.*cc)
     ax.plot(strassex, strassey)
 
-#    ax.plot(test_np, test1_np, color='green')
-
     # center of the ellipse
     line1, = ax.plot([], [], 'o-', lw=0.5)
     # particle on the ellipse
     line2, = ax.plot([], [], 'o', color="black")
-    line3  = ax.axvline(kontakte1[0, 0], linestyle='--', color='blue')
-    line4  = ax.axhline(gesamt_lam(kontakte1[0, 0], amplitude1, frequenz1),
-                        linestyle='--', color='blue')
+    line3 = ax.axvline(kontakte1[0, 0], linestyle='--', color='blue')
+    line4 = ax.axhline(gesamt_lam(kontakte1[0, 0], amplitude1, frequenz1),
+                       linestyle='--', color='blue')
 
     elli = patches.Ellipse((x1[0], y1[0]), width=2.*a1, height=2.*b1,
-                           angle=np.rad2deg(resultat[0
-            , 0]), zorder=1, fill=True, color='red', ec='black')
+                           angle=np.rad2deg(resultat[0, 0]), zorder=1,
+                           fill=True, color='red', ec='black')
     ax.add_patch(elli)
 
     def animate(i):
-        message = (f'running time {times1[i]:.2f} sec \n Initial speed is '
+        message = (f'running time {times[i]:.2f} sec \n Initial speed is '
                    f'{np.abs(u1):.2f} radians/sec to the {wohin}'
                    f'\n The black dot is the particle \n'
                    f'The blue dotted crosshair give the closest potential \n '
@@ -1052,15 +1054,10 @@ def animate_pendulum(times, x1, y1, z1):
         return line1, line2, line3, line4,
 
     anim = animation.FuncAnimation(fig, animate, frames=schritte1,
-                                   interval=2000*np.max(times1) / schritte1,
+                                   interval=1500*np.max(times1) / schritte1,
                                    blit=True)
-    plt.close(fig)
     return anim
 
+
 anim = animate_pendulum(times1, Dmcx, Dmcy, Po_np)
-print(f'it took {time.time() - start :.3f} sec to run the program BEFORE HTML')
-HTML(anim.to_jshtml())
-
-
-
-
+plt.show()
