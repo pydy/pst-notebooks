@@ -521,7 +521,7 @@ u1 = 5.5
 mx1 = 2.5
 my1 = 6.
 umx1 = 0.
-umy1 = -4.5
+umy1 = -4.75
 
 intervall = 5.0
 # max sin(angle) how the tangents of the street and the ellipse may differ
@@ -1054,7 +1054,7 @@ def animate_pendulum(times, x1, y1, z1):
         return line1, line2, line3, line4,
 
     anim = animation.FuncAnimation(fig, animate, frames=schritte1,
-                                   interval=1500*np.max(times1) / schritte1,
+                                   interval=1250*np.max(times1) / schritte1,
                                    blit=True)
     return anim
 
