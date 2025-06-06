@@ -184,7 +184,7 @@ u11 = 10  # angular velocity of A1.x
 u21 = 1.e-1  # angular velocity of A1.y, the disturbance
 u31 = 1.e-1  # angular velocity of A1.z, the disturbance
 
-intervall = 20  # time of integration
+intervall = 10  # time of integration
 schritte = 200  # number of steps per second duration-
 
 y0 = [q11, q21, q31, x1, y1, z1, u11, u21, u31, ux1, uy1, uz1]
@@ -235,7 +235,7 @@ _ = ax3.set_ylabel('Kinetic energy [J]')
 # %%
 # Animate the T - handle
 # ------------------------
-zeitpunkte = 500
+zeitpunkte = 250
 
 times2 = []
 resultat2 = []
