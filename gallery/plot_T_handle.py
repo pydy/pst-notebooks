@@ -235,7 +235,7 @@ _ = ax3.set_ylabel('Kinetic energy [J]')
 # %%
 # Animate the T - handle
 # ------------------------
-zeitpunkte = 1000
+zeitpunkte = 500
 
 times2 = []
 resultat2 = []
@@ -306,6 +306,6 @@ ax.view_init(elev=30, azim=30, roll=0.)
 
 # Create the animation
 ani = FuncAnimation(fig, update, frames=schritte2,
-                    interval=1500*np.max(times2) / schritte2)
+                    interval=1000*np.max(times2) / schritte2)
 
 plt.show()
