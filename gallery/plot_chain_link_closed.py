@@ -63,9 +63,6 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.optimize import fsolve, minimize, root
 import matplotlib.pyplot as plt
-import matplotlib as mp
-from IPython.display import HTML
-# mp.rcParams['animation.embed_limit'] = 2**128
 from matplotlib import animation
 
 # %%
@@ -73,7 +70,7 @@ from matplotlib import animation
 # ---------------
 # Set up the geometry.
 # **n** is the number of links in the chain.
-n = 10
+n = 60
 term_info = False
 
 m, g, iZZ, l, reibung = sm.symbols('m, g, iZZ, l, reibung')
@@ -614,9 +611,8 @@ def animate_pendulum(times, x, y):
     anim = animation.FuncAnimation(fig, animate, frames=len(times),
                                    interval=1000*times.max() / len(times),
                                    blit=True)
-    plt.close(fig)
     return anim
 
 
 anim = animate_pendulum(times, x_coords, y_coords)
-HTML(anim.to_jshtml())
+plt.show()
