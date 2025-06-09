@@ -68,6 +68,9 @@ Notes
   error, yet this error is good as intital guess for the next iteration. As I
   do not know the inner workings of Ipopt I do not know why this works - but it
   does.
+- If in :math:`-\textrm{limit} \leq f_x, f_y \leq \textrm{limit}` the value of
+  :math:`\textrm{limit}` is not close to 10.0 it does not converge easily.
+  Unclear why this is so.
 
 
 **States**
@@ -146,7 +149,7 @@ t = me.dynamicsymbols._t
 
 x, y, ux, uy = me.dynamicsymbols('x y ux uy')
 gate_1, gate_2, gate_3 = me.dynamicsymbols('gate_1 gate_2 gate_3')
-fx, fy = me.dynamicsymbols('fx fy')
+fx, fy = me.dynamicsymbols('fx, fy')
 
 m, nu = sm.symbols('m nu')
 steepness = sm.symbols('steepness')
@@ -235,7 +238,7 @@ instance_constraints = (
     time3.func(tf) - 1.0,
 )
 
-limit = 10
+limit = 10.0
 bounds = {
     h: (0.0, 0.5),
     fx: (-limit, limit),
