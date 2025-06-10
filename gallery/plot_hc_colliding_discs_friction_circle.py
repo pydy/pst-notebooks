@@ -14,8 +14,8 @@ Objectives
 Description
 -----------
 
- **n discs**, named :math:`Dmc_0....Dmc_{n-1}` with radius :math:`r_0` and mass
- :math:`m_0` are sliding on the frictionless horizontal X/Z plane.
+ **n** discs, named :math:`Dmc_0....Dmc_{n-1}` with radius :math:`r_0` and mass
+ :math:`m_0` are sliding frictionlessly on the horizontal X/Z plane.
 Their space is limited by a circular wall of radius :math:`R_W` and center
 at the origin of the inertial frame :math:`N`, which is fixed in space.
 
@@ -40,7 +40,7 @@ https://www.sciencedirect.com/science/article/pii/S0094114X23000782
 This is with dissipation during the collision, the general force is given in
 (63) of the article as:\
 :math:`f_n = k_0 \cdot \rho + \chi \cdot \dot \rho`, with :math:`k_0` as
-above, :math:`\rho` the penetration, and :math:`\dot\rho` the speed of the
+below, :math:`\rho` the penetration, and :math:`\dot\rho` the speed of the
 penetration.
 In the article it is stated, that :math:`n = \frac{3}{2}` is a good choice,
 it is derived in Hertz' approach. Of course, :math:`\rho, \dot\rho` must be
@@ -129,17 +129,11 @@ article does not give one.
 import sympy.physics.mechanics as me
 import sympy as sm
 from scipy.integrate import solve_ivp
-#from scipy.optimize import fsolve
 import numpy as np
 from itertools import permutations
 import matplotlib.pyplot as plt
-#%matplotlib inline
 from matplotlib import animation
-#from IPython.display import HTML
 import matplotlib as mp
-#import time
-#import matplotlib
-#matplotlib.rcParams['animation.embed_limit'] = 2**126
 
 # %%
 # This is needed to exit a loop, when a feasible initial location of the discs
@@ -155,7 +149,7 @@ class Rausspringen(Exception):
 # --------------------------
 
 # %%
-#Set up some of the geometry.
+# Set up some of the geometry.
 n = 3  # Number of discs, must be larger than 1
 
 if isinstance(n, int) is False or n < 2:
@@ -177,7 +171,7 @@ rhodtmax = []
 for i, j in permutations(range(n), r=2):
     rhodtmax.append(sm.symbols('rhodtmax' + str(i) + str(j)))
 
-rhodtwall  = list(sm.symbols(f'rhodtwall:{n}'))
+rhodtwall = list(sm.symbols(f'rhodtwall:{n}'))
 
 m0, mo, r0, RW, k0, k0W, iYY, ctau, mu, muW = sm.symbols('m0, mo, r0, RW, k0,'
                                                          'k0W, iYY, ctau, mu,'
@@ -232,6 +226,7 @@ BODY = Body1 + Body2
 # the penetration. For whatever reason, this is not always so.
 # Using :math:`\dfrac{-\dot\rho}{|\dot\rho^{(-)}|}` gives the right results.
 
+
 def HC_disc(N, P1, P2, r, ctau, rhodtmax, k0):
     '''
 Calculates the contact force exerted by P1 on P2, according to the
@@ -273,6 +268,7 @@ The variables in the list are
 # colliding: the penetration depth of the wall into the disc is the same as
 # the disc into the wall.
 
+
 def HC_wall(N, P1, CP, r, ctau, rhodtwall, k0W):
 
     '''
@@ -295,8 +291,8 @@ The variables in the list are
 
     '''
 
-    vektor   = P1.pos_from(CP)
-    abstand  = vektor.magnitude()
+    vektor = P1.pos_from(CP)
+    abstand = vektor.magnitude()
     richtung = vektor.normalize()
     # penetration. Positive if the disc is in collision with the wall
     rho = (r - abstand)
@@ -309,8 +305,9 @@ The variables in the list are
 
     return kraft0
 
+
 # %%
-# *Friction when a disc hits another disc*
+# **Friction when a disc hits another disc**
 #
 # This website:
 # https://math.stackexchange.com/questions/2195047/solve-the-vector-cross-product-equation
@@ -320,6 +317,7 @@ The variables in the list are
 #
 # This way, one can easily get the force acting on P1, without any further
 # geometric considerations.
+
 
 def friction_disc(N, A1, A2, P1, P2, r, ctau, rhodtmax, k0, mu):
     '''
@@ -349,13 +347,16 @@ The force on CP is equivalent to a force on Dmc and a torque on A
     torque = (0.5 * abstand.cross(force_fric) *
               sm.Heaviside(2. * r - abstand.magnitude()))
 
-    kraft  = (1./(0.25 * me.dot(abstand, abstand)) * torque.cross(abstand) *
-              sm.Heaviside( 2. * r - abstand.magnitude()))
+    kraft = (1./(0.25 * me.dot(abstand, abstand)) * torque.cross(abstand) *
+             sm.Heaviside(2. * r - abstand.magnitude()))
 
     return [kraft, torque]
 
+
 # %%
-# *Friction when a disc hits the wall*
+# **Friction when a disc hits the wall**
+
+
 def friction_wall(N, A1, P1, CP, r, ctau, rhodtwall, k0W, mu):
     '''
 When a disc collides with a wall, there will be a force due to friction.
@@ -377,10 +378,11 @@ This force is parallel to the wall, and proportional to
 
     torque0 = (CPa.pos_from(P1).cross(force_fric) *
                sm.Heaviside(r - vektor.magnitude()))
-    kraft0  = (1./me.dot(abstand, abstand) * torque0.cross(-abstand) *
-               sm.Heaviside(r - vektor.magnitude()))
+    kraft0 = (1./me.dot(abstand, abstand) * torque0.cross(-abstand) *
+              sm.Heaviside(r - vektor.magnitude()))
 
     return [kraft0, torque0]
+
 
 # %%
 # **force from the collision of discs with discs and discs with the wall**
@@ -394,7 +396,6 @@ This force is parallel to the wall, and proportional to
 
 FL = []
 
-#------------------------------------------------------------------------------------------------------
 # Hunt - Crossley type collision forces between discs and between disc and wall
 zaehler = -1
 for i, j in permutations(range(n), r=2):
@@ -404,9 +405,8 @@ for i, j in permutations(range(n), r=2):
 
 for i in range(n):
     FL.append((Dmc_list[i], HC_wall(N, Dmc_list[i], CP_list[i], r0, ctau,
-                                    rhodtwall[i], k0W )))
+                                    rhodtwall[i], k0W)))
 
-#------------------------------------------------------------------------------------------------------
 # Friction forces between discs
 zaehler = -1
 for i, j in permutations(range(n), r=2):
@@ -418,7 +418,6 @@ for i, j in permutations(range(n), r=2):
                                         Dmc_list[j], r0, ctau,
                                         rhodtmax[zaehler], k0, mu)[1]))
 
-#------------------------------------------------------------------------------------------------------
 # Friction forces between disc and wall
 for i in range(n):
     FL.append((Dmc_list[i], friction_wall(N, A_list[i], Dmc_list[i],
@@ -480,9 +479,9 @@ for i, j in permutations(range(n), r=2):
     rhodt = me.dot(geschw, richtung)
     rhomax_list.append(rhodt)
 print('rhomax_list DS:', set.union(*[me.find_dynamicsymbols(rhomax_list[k])
-        for k in range(len(rhomax_list))]), '\n')
+      for k in range(len(rhomax_list))]), '\n')
 print('rhomax_list free symbols:', set.union(*[rhomax_list[k].free_symbols
-        for k in range(len(rhomax_list))]), '\n')
+      for k in range(len(rhomax_list))]), '\n')
 
 
 rhowall_list = []
@@ -491,12 +490,12 @@ for i in range(n):
     rhodt = me.dot(Dmc_list[i].vel(N), richtung)
     rhowall_list.append(rhodt)
 print('rhowall_list DS:', set.union(*[me.find_dynamicsymbols(rhowall_list[k])
-        for k in range(len(rhowall_list))], '\n'))
+      for k in range(len(rhowall_list))], '\n'))
 print('rhowall_list free symbols:', set.union(*[rhowall_list[k].free_symbols
-        for k in range(len(rhowall_list))]))
+      for k in range(len(rhowall_list))]))
 
 Po_pos = [[me.dot(Po_list[i].pos_from(P0), uv) for uv in (N.x, N.z)]
-           for i in range(n)]
+          for i in range(n)]
 
 Dmc_distanz = [Dmc_list[i].pos_from(Dmc_list[j]).magnitude()
                for i, j in permutations(range(n), r=2)]
@@ -524,12 +523,10 @@ for i in range(n):
 
 
 # %%
-# *Lambdification*
-# The sympy functions are converted to numpy functions for numerical
-# calculations.
+# **Lambdification**
 
-qL  = q_ind + u_ind
-pL  = [m0, mo, r0, RW, k0, k0W, iYY, ctau, mu, muW] + list(alpha_list) + \
+qL = q_ind + u_ind
+pL = [m0, mo, r0, RW, k0, k0W, iYY, ctau, mu, muW] + list(alpha_list) + \
     rhodtmax + rhodtwall
 pL1 = [m0, mo, r0, RW, k0, k0W, iYY, ctau, mu, muW]
 pL2 = [m0, mo, r0, RW, k0, k0W, iYY, ctau, mu, muW] + list(alpha_list)
@@ -542,9 +539,9 @@ rhowall_list_lam = sm.lambdify(qL + pL1 + CPx_list + CPz_list, rhowall_list,
                                cse=True)
 Dmc_distanz_lam = sm.lambdify(x_list + z_list, Dmc_distanz, cse=True)
 
-Po_pos_lam  = sm.lambdify(qL + pL2, Po_pos, cse=True)
+Po_pos_lam = sm.lambdify(qL + pL2, Po_pos, cse=True)
 
-kin_lam    = sm.lambdify(qL + pL2, kin_energie, cse=True)
+kin_lam = sm.lambdify(qL + pL2, kin_energie, cse=True)
 spring_lam = sm.lambdify(qL + pL2 + CPx_list + CPz_list, spring_energie,
                          cse=True)
 
@@ -554,8 +551,10 @@ spring_lam = sm.lambdify(qL + pL2 + CPx_list + CPz_list, spring_energie,
 #
 # Given a triangle with sides :math:`a, b, c` and opposing angles
 # :math:`\alpha, \beta, \gamma` the *law of the sinus* is:
-# :math:`\dfrac{a}{\sin(\alpha)} = \dfrac{b}{\sin(\beta)} = \dfrac{c}{\sin(\gamma)}`.
-# The *law of cosine* is :math:`c^2 = a^2+b^2 - 2 \cdot a \cdot b \cdot \sin(\gamma)`
+# :math:`\dfrac{a}{\sin(\alpha)} = \dfrac{b}{\sin(\beta)} =
+# \dfrac{c}{\sin(\gamma)}`.
+# The *law of cosine* is :math:`c^2 = a^2+b^2 - 2 \cdot a
+# \cdot b \cdot \sin(\gamma)`
 # In this case:
 #
 # - :math:`b = | {}^{Dmc}r^{P0} |`
@@ -615,8 +614,8 @@ for i in range(n):
     alphasin[i] = sm.sqrt(sm.Abs(1. - alphacos[i]**2))
     betasin[i] = sm.Piecewise((bCP[i] / aCP[i] * alphasin[i], bCP[i] <= aCP[i]),
                               (0., True))
-    alphaCP[i] = sm.Piecewise((sm.asin(alphasin[i]), alphacos[i] >= 0. ),
-                               (-sm.asin(alphasin[i]) + sm.pi, True) )
+    alphaCP[i] = sm.Piecewise((sm.asin(alphasin[i]), alphacos[i] >= 0.),
+                              (-sm.asin(alphasin[i]) + sm.pi, True))
     betaCP[i] = sm.asin(betasin[i])
     gammaCP[i] = sm.pi - alphaCP[i] - betaCP[i]
 
@@ -641,10 +640,10 @@ bCP_lam = sm.lambdify(qL + pL1, bCP, cse=True)
 #
 # 1.
 # The discs are randomly placed within the walls, such that they have a
-# distance of at least :math:`r_0` from the walls, and they have a distance of at
-# least :math:`r_0` from one another. If this cannot be found after 200 trials
-# an exception is raised. As soon as a good placement is found, the loop is
-# left.
+# distance of at least :math:`r_0` from the walls, and they have a distance of
+# at least :math:`r_0` from one another. If this cannot be found after 200
+# trials an exception is raised. As soon as a good placement is found, the
+# loop is left.
 #
 # 2.
 # Assign random linear speeds to each disc, in the range [-5., 5.] for each
@@ -681,7 +680,7 @@ q_list1 = [0. for _ in range(len(q_list))]
 
 # location of the observers
 alpha_list1 = [0.99 for _ in range(len(alpha_list))]
-#-------------------------------------------------------------------
+
 np.random.seed(123)
 # 1. randomly place the discs as described above
 zaehler = 0
@@ -691,8 +690,8 @@ while zaehler <= 200:
         x_listen = []
         z_listen = []
         for i in range(n):
-            x_listen.append(np.random.choice(np.linspace(-RW1 + 2.*r01, RW1 -
-                                                         2.*r01, 100)))
+            x_listen.append(np.random.choice(np.linspace(-RW1 + 2.*r01,
+                                                         RW1 - 2.*r01, 100)))
             z_listen.append(np.random.choice(
                 np.linspace(-np.sqrt(RW1**2 - x_listen[-1]**2) + 2.*r01,
                             np.sqrt(RW1**2 - x_listen[-1]**2) - 2.*r01, 100)))
@@ -701,10 +700,11 @@ while zaehler <= 200:
         x_list1 = x_listen
         z_list1 = z_listen
 
-        if test == True:
+        if test:
             raise Rausspringen
-    except:
+    except Rausspringen:
         break
+
 
 if zaehler <= 200:
     print(f'it took {zaehler} rounds to get valid initial conditions')
@@ -732,13 +732,13 @@ nu = 0.28  # Poisson's ratio for steel.
 EY = 2.e3   # units: N/m^2, Young's modulus, around 2*10^11 for steel
 RW11 = -RW1
 sigma = (1 - nu**2) / EY
-k01  = 4. / (3.* (sigma + sigma)) * np.sqrt(r01/2.)
-k0W1 = 4. / (3.* (sigma + sigma)) * np.sqrt((r01*RW11)/(r01 + RW11))
+k01 = 4. / (3.0 * (sigma + sigma)) * np.sqrt(r01 / 2.)
+k0W1 = 4. / (3.0 * (sigma + sigma)) * np.sqrt((r01 * RW11)/(r01 + RW11))
 
 iYY1 = 0.25 * m01 * r01**2      # from the internet
 
-y0       = x_list1 + z_list1 + q_list1 + ux_list1 + uz_list1 + u_list1
-pL_vals  = [m01, mo1, r01, RW1, k01, k0W1, iYY1, ctau1, mu1, muW1] + \
+y0 = x_list1 + z_list1 + q_list1 + ux_list1 + uz_list1 + u_list1
+pL_vals = [m01, mo1, r01, RW1, k01, k0W1, iYY1, ctau1, mu1, muW1] + \
     alpha_list1 + rhodtmax1 + rhodtwall1
 pL1_vals = [m01, mo1, r01, RW1, k01, k0W1, iYY1, ctau1, mu1, muW1]
 pL2_vals = [m01, mo1, r01, RW1, k01, k0W1, iYY1, ctau1, mu1, muW1] + \
@@ -755,14 +755,14 @@ print('initial conditions are:', [f'{pL_vals[l]}' for l in range(len(pL_vals))])
 # collision. Hoever, this drastically increases the time it take to integrate
 
 intervall = 10.
-max_step = 1.
+max_step = 0.005
 schritte = 20000
 
 times = np.linspace(0, intervall, schritte)
 
 
 def gradient(t, y, args):
-    global X0, zaehler, zaehlerm
+    global zaehler
     # here I find rhodtmax, the collision speed of two discs just
     # before the impact
     zaehler = -1
@@ -861,10 +861,10 @@ for kk in range(n):
     axes[kk].set_ylabel('deviation (m)')
     if kk == n-1:
         axes[kk].set_xlabel('time( sec)')
-    axes[kk].legend();
+    _ = axes[kk].legend()
 
 # %%
-# *plot* whichever generalized coordinates you want to see.
+# Plot whichever generalized coordinates you want to see.
 # *schritte* may be very large, to catch the impacts, this is not needed her.
 # Hence I reduce the number of points to be plotted to around :math:`N_2`.
 
@@ -885,17 +885,15 @@ bezeichnung = (['x' + str(i) for i in range(n)] +
                ['q' + str(i) for i in range(n)] +
                ['ux' + str(i) for i in range(n)] +
                ['uz' + str(i) for i in range(n)] +
-               ['u' + str(i) for i in range(n)]
-
-              )
-fig, ax = plt.subplots(figsize=(10,5))
+               ['u' + str(i) for i in range(n)])
+fig, ax = plt.subplots(figsize=(10, 5))
 for i in range(0*n, 2*n):
     label = 'gen. coord. ' + str(i)
     ax.plot(times1, resultat1[:, i], label=bezeichnung[i])
 ax.set_title('Generalized coordinates')
 ax.set_xlabel('time (sec)')
 ax.set_ylabel('units of whichever coordinates are chosen')
-ax.legend();
+_ = ax.legend()
 
 # %%
 # Plot the **hysteresis curve** of :math:`disc_i` when it collides with the
@@ -909,15 +907,20 @@ ax.legend();
 vDmc = [Dmc_list[i].vel(N).magnitude() for i in range(n)]
 vorzeichen = [sm.sign(me.dot(Dmc_list[i].pos_from(P0).normalize(),
                              Dmc_list[i].vel(N).normalize()))
-                for i in range(n)]
+              for i in range(n)]
 vDmc_lam = sm.lambdify(qL + pL2, vDmc, cse=True)
 vorzeichen_lam = sm.lambdify(qL + pL2, vorzeichen, cse=True)
+
+HC_kraft_list = []
+HC_displ_list = []
+HC_times_list = []
+l1_list = []
 
 for l1 in range(n):
     HC_kraft = []
     HC_displ = []
     HC_times = []
-    zaehler  = 0
+    zaehler = 0
 
     i0 = 0
     for i in range(resultat.shape[0]):
@@ -943,37 +946,57 @@ for l1 in range(n):
             HC_displ.append(abstand)
             HC_kraft.append(kraft0)
             HC_times.append((zaehler, times[i]))
-            zaehler +=1
+            zaehler += 1
 
     if len(HC_displ) > 0:
         HC_displ = np.array(HC_displ)
         HC_kraft = np.array(HC_kraft)
+        HC_displ_list.append(HC_displ)
+        HC_kraft_list.append(HC_kraft)
+        HC_times_list.append(HC_times)
+        l1_list.append(l1)
 
-        fig, ax = plt.subplots(figsize=(10,5))
-        ax.plot(HC_displ, HC_kraft)
-        ax.set_xlabel('penetration depth (m)')
-        ax.set_ylabel('contact force (N)')
-        ax.set_title((f'hysteresis curves of successive impacts of dics_{l1} '
-                      f' with wall_0, ctau = {ctau1}, '
-                      f'mu = {mu1}, muW = {muW1}'))
+fig, ax = plt.subplots(len(HC_displ_list), 1,
+                       figsize=(10, 5.0 * len(HC_displ_list)),
+                       layout='constrained')
 
-        zeitpunkte = 20
-        reduction = max(1, int(len(HC_times)/zeitpunkte))
-        for k in range(len(HC_times)):
-            if k % reduction == 0:
-                coord  = HC_times[k][0]
-                ax.text(HC_displ[coord], HC_kraft[coord],
-                        f'{HC_times[k][1]:.2f}', color="black")
+for i in range(len(HC_displ_list)):
+    HC_displ = HC_displ_list[i]
+    HC_kraft = HC_kraft_list[i]
+    HC_times = HC_times_list[i]
+
+    ax[i].plot(HC_displ, HC_kraft)
+    ax[i].set_ylabel('contact force (N)')
+    ax[i].set_title((f'hysteresis curves of successive impacts of '
+                     f'dics_{l1_list[i]}'
+                     f' with the wall, ctau = {ctau1}, '
+                     f'mu = {mu1}, muW = {muW1}'))
+    ax[i].set_xlabel('penetration depth (m)')
+
+    zeitpunkte = 20
+    reduction = max(1, int(len(HC_times)/zeitpunkte))
+    for k in range(len(HC_times)):
+        if k % reduction == 0:
+            coord = HC_times[k][0]
+            ax[i].text(HC_displ[coord], HC_kraft[coord],
+                       f'{HC_times[k][1]:.2f}', color="black")
 
 
+# %%
 # plot the hysteresis curve of disc i colliding with disc j, for i < j only,
 zaehler1 = -1
+HC_kraft_list = []
+HC_displ_list = []
+HC_times_list = []
+l1_list = []
+l2_list = []
+
 for l1, l2 in permutations(range(n), r=2):
     zaehler1 += 1
     HC_kraft = []
     HC_displ = []
     HC_times = []
-    zaehler  = 0
+    zaehler = 0
 
     i0 = 0
     for i in range(resultat.shape[0]):
@@ -985,37 +1008,53 @@ for l1, l2 in permutations(range(n), r=2):
         if abstand >= 0. and i0 == i:
             walldt = rhomax_list_lam(*[resultat[i, j]
                                        for j in range(resultat.shape[1])],
-                    *pL1_vals)[zaehler1]
+                                     *pL1_vals)[zaehler1]
         if abstand >= 0.:
-            rhodt  = rhomax_list_lam(*[resultat[i, j]
-                                       for j in range(resultat.shape[1])],
-                    *pL1_vals)[zaehler1]
+            rhodt = rhomax_list_lam(*[resultat[i, j]
+                                      for j in range(resultat.shape[1])],
+                                    *pL1_vals)[zaehler1]
             kraft0 = (k01 * abstand**(3/2) * (1. + 3./2. * (1 - ctau1) *
                                               rhodt/walldt))
             HC_displ.append(abstand)
             HC_kraft.append(kraft0)
             HC_times.append((zaehler, times[i]))
-            zaehler +=1
+            zaehler += 1
 
     if len(HC_displ) > 0 and l1 < l2:
         HC_displ = np.array(HC_displ)
         HC_kraft = np.array(HC_kraft)
+        HC_displ_list.append(HC_displ)
+        HC_kraft_list.append(HC_kraft)
+        HC_times_list.append(HC_times)
+        l1_list.append(l1)
+        l2_list.append(l2)
 
-        fig, ax = plt.subplots(figsize=(10,5))
-        ax.plot(HC_displ, HC_kraft, color='red')
-        ax.set_xlabel('penetration depth (m)')
-        ax.set_ylabel('contact force (N)')
-        ax.set_title((f'hysteresis curves of successive impacts of dics_{l1} '
-                      f' with disc_{l2}'
-                      f' ctau = {ctau1}, mu = {mu1}, muW = {muW1}'))
+fig, ax = plt.subplots(len(HC_displ_list), 1,
+                       figsize=(10, 5.0 * len(HC_displ_list)),
+                       layout='constrained')
 
-        zeitpunkte = 12
-        reduction = max(1, int(len(HC_times)/zeitpunkte))
-        for k in range(len(HC_times)):
-            if k % reduction == 0:
-                coord  = HC_times[k][0]
-                ax.text(HC_displ[coord], HC_kraft[coord],
-                        f'{HC_times[k][1]:.2f}', color="black")
+for i in range(len(HC_displ_list)):
+    HC_displ = HC_displ_list[i]
+    HC_kraft = HC_kraft_list[i]
+    HC_times = HC_times_list[i]
+    l1 = l1_list[i]
+    l2 = l2_list[i]
+
+    ax[i].plot(HC_displ, HC_kraft, color='red')
+    ax[i].set_xlabel('penetration depth (m)')
+    ax[i].set_ylabel('contact force (N)')
+    ax[i].set_title((f'hysteresis curves of successive impacts of dics_{l1} '
+                     f' with disc_{l2}'
+                     f' ctau = {ctau1}, mu = {mu1}, muW = {muW1}'))
+
+    zeitpunkte = 12
+    reduction = max(1, int(len(HC_times)/zeitpunkte))
+    for k in range(len(HC_times)):
+        if k % reduction == 0:
+            coord = HC_times[k][0]
+            ax[i].text(HC_displ[coord], HC_kraft[coord],
+                       f'{HC_times[k][1]:.2f}', color="black")
+
 
 # %%
 # Plot the **energies** of the system.
@@ -1033,12 +1072,12 @@ total_np = np.empty(schritte)
 
 for i in range(schritte):
     kin_np[i] = kin_lam(*[resultat[i, j] for j in range(resultat.shape[1])],
-                           *pL2_vals)
+                        *pL2_vals)
     spring_np[i] = spring_lam(*[resultat[i, j]
                                 for j in range(resultat.shape[1])],
                               *pL2_vals, *[CP_X[i, j] for j in range(n)],
                               *[CP_Z[i, j] for j in range(n)])
-    total_np[i]  = spring_np[i] + kin_np[i]
+    total_np[i] = spring_np[i] + kin_np[i]
 
 fig, ax = plt.subplots(figsize=(10, 5))
 for i, j in zip((kin_np, spring_np, total_np),
@@ -1074,7 +1113,7 @@ for i in range(len(times)):
 schritte2 = len(times2)
 resultat2 = np.array(resultat2)
 times2 = np.array(times2)
-print('number of points considered:',len(times2))
+print('number of points considered:', len(times2))
 
 Dmc_X = np.array([[resultat2[i, j] for j in range(n)]
                   for i in range(schritte2)])
@@ -1129,7 +1168,7 @@ def animate_pendulum(times2, Dmc_x, Dmc_Z, Po_X, Po_Z):
     LINE3 = []
 
     for i in range(n):
-# picking the 'right' radius of the discs I do by trial and error.
+        # picking the 'right' radius of the discs I do by trial and error.
         line1, = ax.plot([], [], 'o', markersize=400./RW1)
         line2, = ax.plot([], [], 'o', markersize=5, color='black')
         line3, = ax.plot([], [], '-', markersize=0, linewidth=0.3)
@@ -1152,7 +1191,6 @@ def animate_pendulum(times2, Dmc_x, Dmc_Z, Po_X, Po_Z):
 
         return LINE1 + LINE2 + LINE3
 
-
     anim = animation.FuncAnimation(fig, animate, frames=schritte2,
                                    interval=1000*times2.max() / schritte2,
                                    blit=True)
@@ -1160,8 +1198,7 @@ def animate_pendulum(times2, Dmc_x, Dmc_Z, Po_X, Po_Z):
 
 
 anim = animate_pendulum(times2, Dmc_X, Dmc_Z, Po_X, Po_Z)
-# sphinx_gallery_thumbnail_number = -1
+
+# sphinx_gallery_thumbnail_number = 6
+
 plt.show()
-
-
-
