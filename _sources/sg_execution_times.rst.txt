@@ -1,0 +1,64 @@
+
+:orphan:
+
+.. _sphx_glr_sg_execution_times:
+
+
+Computation times
+=================
+**00:54.253** total execution time for 10 files **from all galleries**:
+
+.. container::
+
+  .. raw:: html
+
+    <style scoped>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" class="init">
+    $(document).ready( function () {
+        $('table.sg-datatable').DataTable({order: [[1, 'desc']]});
+    } );
+    </script>
+
+  .. list-table::
+   :header-rows: 1
+   :class: table table-striped sg-datatable
+
+   * - Example
+     - Time
+     - Mem (MB)
+   * - :ref:`sphx_glr_examples_plot_ball_bouncing_between_two_horizontal_planes.py` (``gallery\plot_ball_bouncing_between_two_horizontal_planes.py``)
+     - 00:54.253
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_T_handle.py` (``gallery\plot_T_handle.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_brachi_shift_hack_inequality_opty.py` (``gallery\plot_brachi_shift_hack_inequality_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_chain_link_closed.py` (``gallery\plot_chain_link_closed.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_ellipse_bouncing_on_street_HC_theory.py` (``gallery\plot_ellipse_bouncing_on_street_HC_theory.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_hc_colliding_discs_friction_circle.py` (``gallery\plot_hc_colliding_discs_friction_circle.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_hc_rolling_balls_uneven_street.py` (``gallery\plot_hc_rolling_balls_uneven_street.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_particle_gates_h_opty.py` (``gallery\plot_particle_gates_h_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_spoked_wheel.py` (``gallery\plot_spoked_wheel.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_wood_pecker.py` (``gallery\plot_wood_pecker.py``)
+     - 00:00.000
+     - 0.0
