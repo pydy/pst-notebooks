@@ -506,7 +506,7 @@ mu1 = 0.1     # coefficient of friction
 
 alpha1, beta1, gamma1 = 0.7, 0., 0.7
 
-intervall = 10.
+intervall = 5.0
 
 rhodtu1, rhodto1 = 1., 1.  # of no importance here.any value o.k.
 ru11, ru21, ru31, ro11, ro21, ro31 = 1., 1., 1., 1., 1., 1.  # dto.
@@ -668,7 +668,7 @@ _ = ax.legend()
 # Animation
 # ---------
 
-zeitpunkte = 500
+zeitpunkte = 250
 times2 = []
 resultat2 = []
 index2 = []
