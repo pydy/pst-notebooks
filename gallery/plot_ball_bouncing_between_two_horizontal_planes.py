@@ -668,7 +668,7 @@ _ = ax.legend()
 # Animation
 # ---------
 
-zeitpunkte = 250
+zeitpunkte = 175
 times2 = []
 resultat2 = []
 index2 = []
