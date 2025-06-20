@@ -675,4 +675,7 @@ def animate_pendulum(times, Dmc_np, DmcEsp_np):
 
 
 anim = animate_pendulum(times2, Dmc_np, DmcEsp_np)
+
+# sphinx_gallery_thumbnail_number = 3
+
 plt.show()
