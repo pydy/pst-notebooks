@@ -39,9 +39,11 @@ Notes
   moment of inertia changes, and the total energy must be conserved.
 
 
+
 """
 
 # %%
+
 import sympy as sm
 import sympy.physics.mechanics as me
 import numpy as np
@@ -62,7 +64,7 @@ import matplotlib.pyplot as plt
 #==============================
 n = 7     # number of spokes
 #=============================
-if isinstance(n, int) is False or n < 3:
+if isinstance(n, int) is False or n <= 2:
     raise Exception('n must be an integer larger than 2')
 N = me.ReferenceFrame('N')
 O = me.Point('O')
@@ -570,9 +572,7 @@ _ = ax.legend()
 # Reduce the number of points drawn to around *zeitpunkte* otherwise it will
 # take a long time to build the animation.
 
-#=======================
 zeitpunkte = 500
-#=======================
 
 # find the coordinates of Dmc and DncEsp.
 Dmc_np = np.empty((schritte, 2))
@@ -638,44 +638,47 @@ else:
     wohin = 'right'
 
 
-def animate_pendulum(times, Dmc_np, DmcEsp_np):
-
+def init_plot():
     fig, ax = plt.subplots(figsize=(10, 10), subplot_kw={'aspect': 'equal'})
 
     ax.axis('on')
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
-    ax.plot(strassex, strassey)   # plot the stree
+    ax.plot(strassex, strassey)   # plot the street
 
     line1, = ax.plot([], [], 'o-', color='black', markersize=10)  # center of the wheel
     LINE = ['spoke' + str(i) for i in range(n)]    # holds the spokes
     for i in range(n):
         LINE[i], = ax.plot([], [], color=farben[i], lw=2.)
 
+    return fig, ax, line1, LINE
 
-    def animate(i):
-        message = (f'running time {times[i]:.2f} sec \n Initial speed is '
-                   f' {np.abs(u1):.2f} radians/sec to the {wohin}')
-        ax.set_title(message, fontsize=12)
-        ax.set_xlabel('X direction', fontsize=12)
-        ax.set_ylabel('Y direction', fontsize=12)
 
-        line1.set_data([Dmc_np[i, 0]], [Dmc_np[i, 1]])  # update center of the wheel
-        for spoke in range(n):                          # update the spokes
-            LINE[spoke].set_data([Dmc_np[i, 0], DmcEsp_np[i, spoke, 0]],
+fig, ax, line1, LINE = init_plot()
+
+
+def update(i):
+    message = (f'running time {times[i]:.2f} sec \n Initial speed is '
+               f' {np.abs(u1):.2f} radians/sec to the {wohin}')
+    ax.set_title(message, fontsize=12)
+    ax.set_xlabel('X direction', fontsize=12)
+    ax.set_ylabel('Y direction', fontsize=12)
+
+    line1.set_data([Dmc_np[i, 0]], [Dmc_np[i, 1]])  # update center of the wheel
+    for spoke in range(n):                          # update the spokes
+        LINE[spoke].set_data([Dmc_np[i, 0], DmcEsp_np[i, spoke, 0]],
                                  [Dmc_np[i, 1], DmcEsp_np[i, spoke, 1]])
 
-        return LINE + [line1]
+    return line1, LINE
 
 
-    anim = animation.FuncAnimation(fig, animate, frames=schritte2,
-                                   interval=1250*np.max(times2) / schritte2,
-                                   blit=True)
-    return anim
+# %%
+# Create the animation
+fig, ax, line1, LINE = init_plot()
+anim = animation.FuncAnimation(fig, update, frames=schritte2,
+                               interval=1250*np.max(times2) / schritte2)
 
-
-anim = animate_pendulum(times2, Dmc_np, DmcEsp_np)
-
-# sphinx_gallery_thumbnail_number = 3
+# sphinx_gallery_thumbnail_number = 4
 
 plt.show()
+

@@ -395,12 +395,13 @@ ymax2 = np.max(DmcR_y)
 ymax = max(ymax1, ymax2) + 2
 
 
-def animate_pendulum(times):
+def init_plot():
     fig, ax = plt.subplots(figsize=(10, 10), subplot_kw={'aspect': 'equal'})
 
     ax.axis('on')
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
+
     ax.axvline(-ro1/2., color='black')
     ax.axvline(ro1/2, color='black')
     ax.axvspan(-ro1/2., ro1/2, color='black', alpha=0.5)
@@ -421,37 +422,75 @@ def animate_pendulum(times):
                              rotation_point='center', color='blue')
     ax.add_patch(ring)
 
-    def animate(i):
-        message = (f'running time {times[i]:.2f}')
-        ax.set_title(message, fontsize=12)
-        ax.set_xlabel('X direction', fontsize=12)
-        ax.set_ylabel('Y direction', fontsize=12)
-        ring.set_xy((P1_x[i], P1_y[i]))
-        ring.set_angle(np.rad2deg(resultat2[i, 0]))
-
-        werte_x = [P_x[i], DmcW_x[i]]
-        werte_y = [P_y[i], DmcW_y[i]]
-        line1.set_data([werte_x, werte_y])
-
-        werte_x = [DmcW_x[i], P2_x[i]]
-        werte_y = [DmcW_y[i], P2_y[i]]
-        line2.set_data([werte_x, werte_y])
-
-        werte_x = [P2_x[i], P3_x[i]]
-        werte_y = [P2_y[i], P3_y[i]]
-        line3.set_data([werte_x, werte_y])
-
-        line4.set_data([[DmcW_x[i]], [DmcW_y[i]]])
-        line5.set_data([[P2_x[i]], [P2_y[i]]])
-        line6.set_data([[P2_x[i]], [P2_y[i]]])
-
-        return line1, line2, line3, line4, line5, line6
-
-    anim = animation.FuncAnimation(fig, animate, frames=schritte2,
-                                   interval=150*np.max(times2) / schritte2,
-                                   blit=True)
-    return anim
+    return fig, ax, line1, line2, line3, line4, line5, line6, ring
 
 
-anim = animate_pendulum(times2)
+fig, ax, line1, line2, line3, line4, line5, line6, ring = init_plot()
+
+
+def animate(i):
+    message = (f'running time {times[i]:.2f}')
+    ax.set_title(message, fontsize=12)
+    ax.set_xlabel('X direction', fontsize=12)
+    ax.set_ylabel('Y direction', fontsize=12)
+    ring.set_xy((P1_x[i], P1_y[i]))
+    ring.set_angle(np.rad2deg(resultat2[i, 0]))
+
+    werte_x = [P_x[i], DmcW_x[i]]
+    werte_y = [P_y[i], DmcW_y[i]]
+    line1.set_data([werte_x, werte_y])
+
+    werte_x = [DmcW_x[i], P2_x[i]]
+    werte_y = [DmcW_y[i], P2_y[i]]
+    line2.set_data([werte_x, werte_y])
+
+    werte_x = [P2_x[i], P3_x[i]]
+    werte_y = [P2_y[i], P3_y[i]]
+    line3.set_data([werte_x, werte_y])
+
+    line4.set_data([[DmcW_x[i]], [DmcW_y[i]]])
+    line5.set_data([[P2_x[i]], [P2_y[i]]])
+    line6.set_data([[P2_x[i]], [P2_y[i]]])
+
+    return line1, line2, line3, line4, line5, line6, ring
+
+
+# %%
+# Create the animation object.
+fig, ax, line1, line2, line3, line4, line5, line6, ring = init_plot()
+
+anim = animation.FuncAnimation(fig, animate, frames=schritte2,
+                               interval=150*np.max(times2) / schritte2)
+
+# sphinx_gallery_thumbnail_number = 2
+
+# %%
+# Energies of the system.
+#
+# As expected the total energy drops as there is friction.
+
+kin_np = np.array(energien(*[resultat[:, i]
+                             for i in range(resultat.shape[1])], *pL_vals)[0])
+pot_np = np.array(energien(*[resultat[:, i]
+                             for i in range(resultat.shape[1])], *pL_vals)[1])
+spring_np = np.array(energien(*[resultat[:, i]
+                                for i in range(resultat.shape[1])],
+                              *pL_vals)[2])
+total_np = kin_np + pot_np + spring_np
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
+ax1.plot(times, kin_np, label='TEST energy', color='red')
+ax1.plot(times, pot_np, label='TEST energy', color='red')
+ax1.plot(times, spring_np, label='TEST energy', color='red')
+ax1.plot(times, total_np, label='TEST energy', color='red')
+ax1.set_ylabel('energy(Nm)')
+ax1.set_title('Energies of the system')
+ax1.legend()
+ax2.plot(times, spring_np, label='TEST energy', color='red')
+ax2.set_title('Spring energy separated out')
+ax2.set_xlabel('time (sec)')
+ax2.set_ylabel('energy (Nm)')
+_ = ax2.legend()
+
+
 plt.show()
