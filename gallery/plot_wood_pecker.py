@@ -69,6 +69,8 @@ from matplotlib import animation
 from matplotlib import patches
 import matplotlib.pyplot as plt
 
+# sphinx_gallery_thumbnail_number = 1
+
 # %%
 # Set up the System
 # -----------------
@@ -245,63 +247,6 @@ resultat = resultat1.y.T
 print('Shape of result: ', resultat.shape)
 print(resultat1.message)
 
-# %%
-# Plot some generalized coordinates
-
-bezeichnung = [str(i) for i in qL]
-fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 15), sharex=True)
-for i in (0, 1):
-    ax1.plot(times, np.rad2deg(resultat[:, i]), label=bezeichnung[i])
-ax1.set_ylabel('angle (degrees)')
-ax1.set_title('Generalized coordinates')
-ax1.axhline(max_kipp1, linestyle='--', color='black', lw=0.5)
-ax1.axhline(-max_kipp1, linestyle='--', color='black', lw=0.5)
-ax1.legend()
-
-kraft1 = np.array(krafte_lam(*[resultat[:, i]
-                               for i in range(resultat.shape[1])],
-                             *pL_vals)[0])
-kraft2 = np.array(krafte_lam(*[resultat[:, i]
-                               for i in range(resultat.shape[1])],
-                             *pL_vals)[1])
-ax2.plot(times, kraft1, label='Torque to stop rotation of the ring')
-ax2.plot(times, kraft2, label='Friction to slow down the ring')
-ax2.set_title('Torque, Force')
-ax2.legend()
-ax3.plot(times, resultat[:, 2], label='Location of the ring')
-ax3.plot(times, resultat[:, 5], label='linear speed of the ring')
-ax3.set_xlabel('time (sec)')
-ax3.set_title('location and speed of the ring')
-ax3.axhline(0., linestyle='--', color='black', lw=0.5)
-_ = ax3.legend()
-
-# %%
-# Energies of the system.
-#
-# As expected the total energy drops as there is friction.
-
-kin_np = np.array(energien(*[resultat[:, i]
-                             for i in range(resultat.shape[1])], *pL_vals)[0])
-pot_np = np.array(energien(*[resultat[:, i]
-                             for i in range(resultat.shape[1])], *pL_vals)[1])
-spring_np = np.array(energien(*[resultat[:, i]
-                                for i in range(resultat.shape[1])],
-                              *pL_vals)[2])
-total_np = kin_np + pot_np + spring_np
-
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
-ax1.plot(times, kin_np, label='kinetic energy')
-ax1.plot(times, pot_np, label='potential energy')
-ax1.plot(times, spring_np, label='spring energy')
-ax1.plot(times, total_np, label='total energy')
-ax1.set_ylabel('energy(Nm)')
-ax1.set_title('Energies of the system')
-ax1.legend()
-ax2.plot(times, spring_np, label='spring energy')
-ax2.set_title('Spring energy separated out')
-ax2.set_xlabel('time (sec)')
-ax2.set_ylabel('energy (Nm)')
-_ = ax2.legend()
 
 # %%
 # Animation
@@ -402,9 +347,9 @@ def init_plot():
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
 
-    ax.axvline(-ro1/2., color='black')
-    ax.axvline(ro1/2, color='black')
-    ax.axvspan(-ro1/2., ro1/2, color='black', alpha=0.5)
+    line01 = ax.axvline(-ro1/2., color='black')
+    line02 = ax.axvline(ro1/2, color='black')
+    line03 = ax.axvspan(-ro1/2., ro1/2, color='black', alpha=0.5)
 
     line1, = ax.plot([], [], color='blue')   # line connecting P to DmcW
     # line connecting DmcW to P2
@@ -422,10 +367,8 @@ def init_plot():
                              rotation_point='center', color='blue')
     ax.add_patch(ring)
 
-    return fig, ax, line1, line2, line3, line4, line5, line6, ring
-
-
-fig, ax, line1, line2, line3, line4, line5, line6, ring = init_plot()
+    return (fig, ax, line01, line02, line03, line1, line2, line3, line4,
+            line5, line6, ring)
 
 
 def animate(i):
@@ -452,17 +395,45 @@ def animate(i):
     line5.set_data([[P2_x[i]], [P2_y[i]]])
     line6.set_data([[P2_x[i]], [P2_y[i]]])
 
-    return line1, line2, line3, line4, line5, line6, ring
-
 
 # %%
 # Create the animation object.
-fig, ax, line1, line2, line3, line4, line5, line6, ring = init_plot()
+(fig, ax, line01, line02, line03, line1, line2, line3, line4, line5,
+ line6, ring) = init_plot()
 
 anim = animation.FuncAnimation(fig, animate, frames=schritte2,
                                interval=150*np.max(times2) / schritte2)
 
-# sphinx_gallery_thumbnail_number = 2
+
+# %%
+# Plot some generalized coordinates
+
+bezeichnung = [str(i) for i in qL]
+fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 15), sharex=True)
+for i in (0, 1):
+    ax1.plot(times, np.rad2deg(resultat[:, i]), label=bezeichnung[i])
+ax1.set_ylabel('angle (degrees)')
+ax1.set_title('Generalized coordinates')
+ax1.axhline(max_kipp1, linestyle='--', color='black', lw=0.5)
+ax1.axhline(-max_kipp1, linestyle='--', color='black', lw=0.5)
+ax1.legend()
+
+kraft1 = np.array(krafte_lam(*[resultat[:, i]
+                               for i in range(resultat.shape[1])],
+                             *pL_vals)[0])
+kraft2 = np.array(krafte_lam(*[resultat[:, i]
+                               for i in range(resultat.shape[1])],
+                             *pL_vals)[1])
+ax2.plot(times, kraft1, label='Torque to stop rotation of the ring')
+ax2.plot(times, kraft2, label='Friction to slow down the ring')
+ax2.set_title('Torque, Force')
+ax2.legend()
+ax3.plot(times, resultat[:, 2], label='Location of the ring')
+ax3.plot(times, resultat[:, 5], label='linear speed of the ring')
+ax3.set_xlabel('time (sec)')
+ax3.set_title('location and speed of the ring')
+ax3.axhline(0., linestyle='--', color='black', lw=0.5)
+_ = ax3.legend()
 
 # %%
 # Energies of the system.
@@ -479,18 +450,17 @@ spring_np = np.array(energien(*[resultat[:, i]
 total_np = kin_np + pot_np + spring_np
 
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
-ax1.plot(times, kin_np, label='TEST energy', color='red')
-ax1.plot(times, pot_np, label='TEST energy', color='red')
-ax1.plot(times, spring_np, label='TEST energy', color='red')
-ax1.plot(times, total_np, label='TEST energy', color='red')
+ax1.plot(times, kin_np, label='kinetic energy')
+ax1.plot(times, pot_np, label='potential energy')
+ax1.plot(times, spring_np, label='spring energy')
+ax1.plot(times, total_np, label='total energy')
 ax1.set_ylabel('energy(Nm)')
 ax1.set_title('Energies of the system')
 ax1.legend()
-ax2.plot(times, spring_np, label='TEST energy', color='red')
+ax2.plot(times, spring_np, label='spring energy')
 ax2.set_title('Spring energy separated out')
 ax2.set_xlabel('time (sec)')
 ax2.set_ylabel('energy (Nm)')
 _ = ax2.legend()
-
 
 plt.show()
