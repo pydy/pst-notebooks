@@ -10,6 +10,8 @@ Objectives
   propellers of a drone) and known parameters (here: the radius of the
   propellers) simultaneously and also it optimizes the speed.
 - Show how sometimes one gets better results with an iterative approach.
+- Show how different objective functions, with the same goal - a balance
+  between speed and energy consumption - can affect the results.
 
 Description
 -----------
@@ -19,29 +21,24 @@ modeled as solid discs. To create lift, two propellers must rotate
 'positively', two 'negatively', else the drone will rotate. Also the radius
 of the propeller is optimized.
 
-The objective function to be minimized is :math:`t_{\text{final}}^7 \cdot
-\int_0^{t_{\text{final}}} (T_1^2 + T_2^2 + T_3^2 + T_4^2) \, dt`, where
-:math:`T_i` is the torque applied to propeller `i`, and
+The objective function to be minimized is :math:`\int_0^{t_{\text{final}}}
+(T_1^2 + T_2^2 + T_3^2 + T_4^2) \, dt + \textrm{weight} \cdot t_{\text{final}}`
+, where :math:`T_i` is the torque applied to propeller `i`, and
 :math:`t_{\text{final}}` is the final time of the trajectory, it is variable,
 its value determined by opty.
 
 Notes
 -----
-
+- Initially this objective function was used:
+  :math:`t_{\text{final}}^7 \cdot
+  \int_0^{t_{\text{final}}} (T_1^2 + T_2^2 + T_3^2 + T_4^2) \, dt`
+  It converged easily, but the duration of the flight varied from 6.8 sec to
+  9.4 sec, identical initial conditions. Apparently high powers of the variable
+  time interval are to be avoided.
 - This is merely a somewhat more complex example of this one:
   https://opty.readthedocs.io/stable/examples/intermediate/plot_drone.html#sphx-glr-examples-intermediate-plot-drone-py
 - The relationships regarding friction, lifting power of the propellers, etc.,
   are arbitrary.
-- The objective function is also a bit arbitrary. If the more conventional
-  objective function
-  :math:`\int_0^{t_{\text{final}}} (T_1^2 + T_2^2 + T_3^2 + T_4^2) \, dt`
-  was used,
-  the flight time gets much longer, as emphasis is more on minimizing the
-  torques than on minimizing the flight time.
-- The problem seems to be a bit ill conditioned: Identical initial conditions
-  do not always lead to exactly the same solution. (E.g. :math:`t_{final}` may
-  be 7.7 sec or 6.8 sec )
-
 
 **States**
 
@@ -66,6 +63,7 @@ Notes
 - :math:`\text{reibung}` : Friction coefficient for the drone body.
 - :math:`\text{reibungP}` : Friction coefficient for the propellers.
 - :math:`\text{x_m, y_m, z_m}` : Coordinates of an intermediate stopping point.
+- :math:`\textrm{weight}` : Relative importance of the speed.
 
 """
 
@@ -291,9 +289,12 @@ h = sm.symbols('h', real=True)
 interval_value = h
 t0, t_int, tf = 0.0, num_nodes // 2 * h, (num_nodes - 1) * h
 
+weight = 1.e6
+
 
 def obj(free):
-    summe = np.sum(free[20 * num_nodes: 24 * num_nodes]**2) * free[-1]**8
+    summe = (np.sum(free[20 * num_nodes: 24 * num_nodes]**2) * free[-1] +
+             weight * free[-1])
     return summe
 
 
@@ -301,9 +302,8 @@ def obj_grad(free):
     """Gradient of the objective function."""
     grad = np.zeros_like(free)
     grad[20 * num_nodes: 24 * num_nodes] = (2 * free[20 * num_nodes: 24 *
-                                                     num_nodes] * free[-1]**8)
-    grad[-1] = (np.sum(free[20 * num_nodes: 24 * num_nodes]**2) * 8 *
-                free[-1]**7)
+                                                     num_nodes] * free[-1])
+    grad[-1] = np.sum(free[20 * num_nodes: 24 * num_nodes]**2) + weight
     return grad
 
 
