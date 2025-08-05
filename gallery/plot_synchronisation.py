@@ -20,11 +20,15 @@ Two pendulums of length :math:`l_2` and :math:`l_3` are connected by a
 horizontal rod of length :math:`l_1`, which can move horizontally.
 The first pendulum is fixed at the left
 end of the horizontal rod, the second pendulum is fixed at the right end of
-the horizontal rod. The horizontal rod is connected to a fixed point by a
+the horizontal rod. The horizontal rod is connected to a :math:`O` point by a
 spring and a damper. The first pendulum is connected to the horizontal rod by a
 spring and a damper of constants :math:`k_1` and :math:`d_1`. The second
 pendulum is connected to the horizontal rod by a spring and a damper of
 constants :math:`k_2` and :math:`d_2`.
+
+Impulse torques of strength :math:`p_2` and :math:`p_3` are applied to the
+first and second pendulum, respectively. The impulse is modeled by a smooth
+hump function.
 
 Notes
 -----
@@ -73,6 +77,9 @@ import sympy.physics.mechanics as me
 from scipy.integrate import solve_ivp
 from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
+
+from scipy.interpolate import CubicSpline
+from matplotlib.animation import FuncAnimation
 
 # sphinx_gallery_thumbnail_number = 2
 
@@ -175,7 +182,7 @@ m21 = 1.0  # mass of the first vertical rod
 m31 = 1.0  # mass of the second vertical rod
 
 g1 = 9.81  # gravitational acceleration
-l11 = 1.0  # length of the horizontal rod
+l11 = 1.5  # length of the horizontal rod
 l21 = 1.0  # length of the first vertical rod
 l31 = 1.1  # length of the second vertical rod
 
@@ -187,7 +194,7 @@ d21 = 0.2  # damping coefficient of the first vertical rod
 d31 = 0.2  # damping coefficient of the second vertical rod
 
 p21 = 0.45  # impulse torque applied to the first vertical rod
-p31 = 0.45  # impulse torque applied to the second vertical rod
+p31 = 0.475  # impulse torque applied to the second vertical rod
 
 # Initial conditions
 q11 = 0.0  # initial x position of the horizontal rod
@@ -197,7 +204,7 @@ u11 = 0.0
 u21 = 0.0
 u31 = 0.0
 
-intervall = 100  # Simulation time in seconds
+intervall = 200  # Simulation time in seconds
 punkte = 200  # Evaluation points per second
 
 schritte = int(intervall * punkte)
@@ -221,6 +228,7 @@ frequenz3 = []
 peaks2 = []
 peaks3 = []
 min_values = []
+resultat_list = []
 
 for i in range(2):
     if i == 0:
@@ -238,6 +246,7 @@ for i in range(2):
                           args=(pL_vals,), max_step=max_step)
 
     resultat = resultat1.y.T
+    resultat_list.append(resultat)
     print('resultat shape', resultat.shape)
     print(resultat1.message)
     print(f"the solve made {resultat1.nfev:,} function evaluations \n")
@@ -245,10 +254,19 @@ for i in range(2):
     # Plotting the results
     if i == 0:
         anfang = int((intervall - 10.0) * punkte)
+        peak2, _ = find_peaks(resultat[anfang:, 1], height=np.deg2rad(10))
+        peak3, _ = find_peaks(resultat[anfang:, 2], height=np.deg2rad(20))
+
         fig, ax = plt.subplots(3, 1, figsize=(12, 8), layout='constrained')
         ax[0].plot(times[anfang:], resultat[anfang:, 0])
         ax[1].plot(times[anfang:], np.rad2deg(resultat[anfang:, 1]))
+        ax[1].axhline(0.0, color='black', lw=0.5, ls='--')
+        for peak in peak2:
+            ax[1].axvline(times[anfang + peak], color='red', lw=0.5, ls='--')
         ax[2].plot(times[anfang:], np.rad2deg(resultat[anfang:, 2]))
+        ax[2].axhline(0.0, color='black', lw=0.5, ls='--')
+        for peak in peak3:
+            ax[2].axvline(times[anfang + peak], color='blue', lw=0.5, ls='--')
         ax[0].set_ylabel('q1 [m]')
         ax[0].set_title('Generalized coordinates')
         ax[1].set_ylabel('q2 [deg]')
@@ -266,25 +284,130 @@ for i in range(2):
 
 # %%
 # plot the frequencies of the pendulums.
-eigenfrequency2 = np.mean(frequenz2[1]) / punkte
-eigenfrequency3 = np.mean(frequenz3[1]) / punkte
+eigenfrequency20 = np.mean(frequenz2[0]) / punkte
+eigenfrequency30 = np.mean(frequenz3[0]) / punkte
+eigenfrequency21 = np.mean(frequenz2[1]) / punkte
+eigenfrequency31 = np.mean(frequenz3[1]) / punkte
 min_value = min(min_values)
 fig, ax = plt.subplots(1, 1, figsize=(10, 4))
 ax.plot(np.linspace(0.0, intervall, min_value),
         frequenz2[0][:min_value] / punkte, color='red',
-        label='Frequency of first pendulum')
+        label='Coupled frequency of first pendulum')
 ax.plot(np.linspace(0.0, intervall, min_value),
         frequenz3[0][:min_value] / punkte, color='blue',
-        label='Frequency of second pendulum')
+        label='Coupled frequency of second pendulum')
+ax.plot(np.linspace(0.0, intervall, min_value),
+        np.ones(min_value) * eigenfrequency20, '--', color='red',
+        label='Coupled average frequency of first pendulum')
+ax.plot(np.linspace(0.0, intervall, min_value),
+        np.ones(min_value) * eigenfrequency30, '--', color='blue',
+        label='Coupled average frequency of second pendulum')
 ax.set_xlabel('Time [s]')
 ax.set_ylabel('Frequency [Hz]')
 ax.set_title('Frequency of the pendulums')
 
 
 ax.plot(np.linspace(0.0, intervall, min_value),
-        np.ones(min_value) * eigenfrequency2, '--', color='red',
+        np.ones(min_value) * eigenfrequency21, '.-', color='red',
         label='Eigenfrequency of first pendulum')
 ax.plot(np.linspace(0.0, intervall, min_value),
-        np.ones(min_value) * eigenfrequency3, '--', color='blue',
+        np.ones(min_value) * eigenfrequency31, '.-', color='blue',
         label='Eigenfrequency of second pendulum')
 _ = ax.legend()
+
+# %%
+# Animate the Simulation
+# ----------------------
+# Only an excerpt of the total simulation is animated, as the the animation
+# would take up too much memory otherwise
+# Calculate the value of the maximum and minimum angles of the pendulums
+peaks2, dicts2 = find_peaks(resultat_list[0][200:, 1], height=np.deg2rad(10))
+trough2, dict_through2 = find_peaks(-resultat_list[0][200:, 1],
+                                    height=-np.deg2rad(10))
+peaks3, dicts3 = find_peaks(resultat_list[0][200:, 2], height=np.deg2rad(20))
+trough3, dict_through3 = find_peaks(-resultat_list[0][200:, 2],
+                                    height=-np.deg2rad(20))
+
+peak2_average = np.mean(dicts2['peak_heights'])
+print(f'Average height of peaks2: {np.rad2deg(peak2_average):.2f} deg')
+peak3_average = np.mean(dicts3['peak_heights'])
+print(f'Average height of peaks3: {np.rad2deg(peak3_average):.2f} deg')
+trough2_average = -np.mean(dict_through2['peak_heights'])
+print(f'Average height of troughs2: {np.rad2deg(trough2_average):.2f} deg')
+trough3_average = -np.mean(dict_through3['peak_heights'])
+print(f'Average height of troughs3: {np.rad2deg(trough3_average):.2f} deg')
+
+fps = 8
+t0, tf = 0.0, intervall
+t_arr = np.linspace(t0, tf, schritte)
+state_sol = CubicSpline(t_arr, resultat_list[0])
+# Points at the end of the pendulums
+P3, P4 = me.Point('P3'), me.Point('P4')
+P3.set_pos(P1, -l2 * A2.y)
+P4.set_pos(P2, -l3 * A3.y)
+
+coordinates = P1.pos_from(O).to_matrix(N)
+for point in [P2, P3, P4]:
+    coordinates = coordinates.row_join(point.pos_from(O).to_matrix(N))
+
+coords_lam = sm.lambdify(qL + pL, coordinates, cse=True)
+
+width, height, radius = 0.5, 0.5, 0.5
+
+
+def init_plot():
+    xmin, xmax = -1.5, 2.0
+    ymin, ymax = -1.5, 0.5
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(ymin, ymax)
+    ax.set_aspect('equal')
+    ax.set_xlabel('X-axis [m]')
+    ax.set_ylabel('Y-axis [m]')
+
+    line1, = ax.plot([], [], color='black', lw=1.0)
+    line2, = ax.plot([], [], color='red', lw=1.5)
+    line3, = ax.plot([], [], color='blue', lw=1.5)
+
+    line4 = ax.axvline(-0.5, color='red', lw=0.5, linestyle='--')
+    line5 = ax.axvline(0.5, color='red', lw=0.5, linestyle='--')
+    line6 = ax.axvline(0.0, color='blue', lw=0.5, linestyle='--')
+    line7 = ax.axvline(0.0, color='blue', lw=0.5, linestyle='--')
+
+    return fig, ax, point, line1, line2, line3, line4, line5, line6, line7
+
+
+fig, ax, point, line1, line2, line3, line4, line5, line6, line7 = init_plot()
+
+
+def update(t):
+    message = (f'Running time {t:0.2f} sec \n Speed 3 times actual speed \n '
+               f'The vertical dotted lines are the maximum \n average'
+               ' deflections of the pendulums.')
+    ax.set_title(message)
+
+    coords = coords_lam(*state_sol(t), *pL_vals)
+
+    line1.set_data([coords[0, 0], coords[0, 1]], [coords[1, 0], coords[1, 1]])
+    line2.set_data([coords[0, 0], coords[0, 2]], [coords[1, 0], coords[1, 2]])
+    line3.set_data([coords[0, 1], coords[0, 3]], [coords[1, 1], coords[1, 3]])
+
+    line4.set_xdata([coords[0, 0] + l21 * np.sin(peak2_average),
+                     coords[0, 0] + l21 * np.sin(peak2_average)])
+    line5.set_xdata([coords[0, 0] + l21 * np.sin(trough2_average),
+                     coords[0, 0] + l21 * np.sin(trough2_average)])
+    line6.set_xdata([coords[0, 1] + l31 * np.sin(peak3_average),
+                     coords[0, 1] + l31 * np.sin(peak3_average)])
+    line7.set_xdata([coords[0, 1] + l31 * np.sin(trough3_average),
+                     coords[0, 1] + l31 * np.sin(trough3_average)])
+
+
+# Create the animation.
+anim = FuncAnimation(fig, update,
+                     frames=np.arange(5, 45, 1/fps),
+                     interval=1/fps*333.3)
+
+plt.show()
+
+# %%
