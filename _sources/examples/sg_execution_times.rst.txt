@@ -1,0 +1,103 @@
+
+:orphan:
+
+.. _sphx_glr_examples_sg_execution_times:
+
+
+Computation times
+=================
+**00:46.671** total execution time for 23 files **from examples**:
+
+.. container::
+
+  .. raw:: html
+
+    <style scoped>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" class="init">
+    $(document).ready( function () {
+        $('table.sg-datatable').DataTable({order: [[1, 'desc']]});
+    } );
+    </script>
+
+  .. list-table::
+   :header-rows: 1
+   :class: table table-striped sg-datatable
+
+   * - Example
+     - Time
+     - Mem (MB)
+   * - :ref:`sphx_glr_examples_plot_explorer_anomaly.py` (``plot_explorer_anomaly.py``)
+     - 00:46.671
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_3d_drone_propeller.py` (``plot_3d_drone_propeller.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_T_handle.py` (``plot_T_handle.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_balancing_wheel.py` (``plot_balancing_wheel.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_ball_bouncing_between_two_horizontal_planes.py` (``plot_ball_bouncing_between_two_horizontal_planes.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_block_on_disc_coulomb_friction.py` (``plot_block_on_disc_coulomb_friction.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_brachi_shift_hack_inequality_opty.py` (``plot_brachi_shift_hack_inequality_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_car_hits_points.py` (``plot_car_hits_points.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_chain_link_closed.py` (``plot_chain_link_closed.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_chain_symjit.py` (``plot_chain_symjit.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_d_levinson_lecture_6.py` (``plot_d_levinson_lecture_6.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_ellipse_bouncing_on_street_HC_theory.py` (``plot_ellipse_bouncing_on_street_HC_theory.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_estimate_time_delay.py` (``plot_estimate_time_delay.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_hc_colliding_discs_friction_circle.py` (``plot_hc_colliding_discs_friction_circle.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_hc_colliding_ellipses_circle.py` (``plot_hc_colliding_ellipses_circle.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_hc_rolling_balls_uneven_street.py` (``plot_hc_rolling_balls_uneven_street.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_identification_of_four_parameters_opty.py` (``plot_identification_of_four_parameters_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_particle_gates_h_opty.py` (``plot_particle_gates_h_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_spoked_wheel.py` (``plot_spoked_wheel.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_synchronisation.py` (``plot_synchronisation.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_two_body_skateboard.py` (``plot_two_body_skateboard.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_two_ellipses_bouncing.py` (``plot_two_ellipses_bouncing.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_wood_pecker.py` (``plot_wood_pecker.py``)
+     - 00:00.000
+     - 0.0
