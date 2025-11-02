@@ -14,3 +14,32 @@ Opty, SciPy, Matplotlib, etc.
    :caption: Contents:
 
    examples/index.rst
+
+
+Mechanics Animations
+--------------------
+
+.. raw:: html
+
+   <iframe width="696" height="839"
+   src="https://www.youtube.com/embed/wZQpEu-R-24" title="Inverted Moving Base
+   3 Link Pendulum Balanced with LQR Control" frameborder="0"
+   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope;
+   picture-in-picture; web-share"
+   referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+.. raw:: html
+
+   <iframe width="696" height="839"
+   src="https://www.youtube.com/embed/DXmNQ0SBxf4" title="Optimal Drone Flight
+   Solution using Opty" frameborder="0" allow="accelerometer; autoplay;
+   clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+   referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+.. raw:: html
+
+   <iframe width="696" height="839"
+   src="https://www.youtube.com/embed/wsD94fh0svk" title="Bouncing Ellipse on a
+   Bumpy Surface" frameborder="0" allow="accelerometer; autoplay;
+   clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+   referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
