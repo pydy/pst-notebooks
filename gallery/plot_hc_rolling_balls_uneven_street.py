@@ -36,6 +36,8 @@ Notes
 - Even a problem like this has a mass matrix of over 100,000 operations
   and a force vector of over 2.1 mio operations. Difficult to imagine to set up
   the equations of motion by hand.
+- The animation may be made smoother by increasing ``zeitpunkte`` in the
+  animation section of the simulation.
 
 **Variables / Parameters**. :math:`i \in (1, 2)` for the two balls
 
@@ -1108,7 +1110,7 @@ _ = fig.colorbar(strasse, shrink=0.5, label='Height above the ground',
 times2 = []
 resultat2 = []
 
-zeitpunkte = 500
+zeitpunkte = 200
 
 reduction = max(1, int(len(times)/zeitpunkte))
 

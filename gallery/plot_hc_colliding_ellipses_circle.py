@@ -112,6 +112,8 @@ Notes
   As :math:`max(a, b)| < |R_2|` this will give no **mathematical** problems.
   I do not know, whether this approach is physically correct.
 - For more than two ellipses, integration runs a very long time, hours.
+- The animation can be made smoother by increasing the value of
+  ``zeitpunkte`` in the animation part.
 
 **Variables / Parameters**
 
@@ -1414,7 +1416,7 @@ _ = ax6.legend()
 times2 = []
 resultat2 = []
 
-zeitpunkte = 500
+zeitpunkte = 200
 
 reduction = max(1, int(resultat.shape[0]/zeitpunkte))
 

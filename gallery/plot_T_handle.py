@@ -26,13 +26,14 @@ body fixed frame of one of the cylinders forming the T-handle.
 The idea is based on this video:
 https://moorepants.github.io/learn-multibody-dynamics/angular.html
 
-Note
-----
+Notes
+-----
 
-The T - handle is composed of two rods rigidly attached to each other, by
-aligning the A2 frame rigidly with the A1 frame. This way no need to think
-about what the moments of inertia for a T - handle would look like,
-sympy mechanics will take care.
+- The T - handle is composed of two rods rigidly attached to each other, by
+  aligning the A2 frame rigidly with the A1 frame. This way no need to think
+  about what the moments of inertia for a T - handle would look like,
+  sympy mechanics will take care.
+- The animation may be made to look nicer by increasing ``zeitpunkte`` below.
 
 **States**
 
@@ -235,7 +236,7 @@ _ = ax3.set_ylabel('Kinetic energy [J]')
 # %%
 # Animate the T - handle
 # ------------------------
-zeitpunkte = 250
+zeitpunkte = 100
 
 times2 = []
 resultat2 = []

@@ -29,6 +29,8 @@ Notes
   setting *force_display* = False.
 - The integration with the parameters as given takes about 15 min on a decent
   PC.
+- The animation may be made smoother by increasing ``schrittzahl`` below, at the
+  animation section of the simulation.
 
 **Parameters and Variables**
 
@@ -960,7 +962,7 @@ else:
 # street at this specific point in time. (if *force_display = False* the
 # contact points were not calculated, and cannot be shown.)
 
-schrittzahl = 500
+schrittzahl = 200
 
 faktor = max(1, int(resultat.shape[0] / schrittzahl))
 

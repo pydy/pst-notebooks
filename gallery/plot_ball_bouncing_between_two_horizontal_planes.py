@@ -36,6 +36,7 @@ Notes
   model. With mixtur :math:`\approx` 0.35 this gave reasonable results.
   Maybe this really describes reality to some extend, I know too little about
   realistic impacts.
+- The animation may be made smoother by increasing ``zeitpunkte`` below.
 
 **Variables, Parameters**
 
@@ -668,7 +669,7 @@ _ = ax.legend()
 # Animation
 # ---------
 
-zeitpunkte = 175
+zeitpunkte = 90
 times2 = []
 resultat2 = []
 index2 = []
