@@ -13,14 +13,21 @@ than one point.
 Notes
 -----
 
-- The main issues are geometrical: how to find the center of the ellipse given
-  the contact point and the slope of the street = slope of ellipse at this
-  point, and how to relate the speed of the contact point to the angular speed
-  of the ellipse.
-  ``chatGPT`` was used here extensively. It will not give areasonable answer
-  at the first try.
-- Reaction forces on the contact point :math:`C_P` cannot be calculated in this
-  model. Presumably because it is not attached to the ellipse in this model.
+The only issues her are geometric:
+
+  - Find the center of the ellipse, given the contact point and the slope of
+    at the contact point.
+  - Find the speed of the contact point as a function of the angular velocity
+    of the ellipse, and of course other parameters.
+
+- The first issue is relatively simple: I found a way, but chatgpT found a
+  simpler way.
+- The second issue is much more difficult. Finally the 'solution' used here
+  was found by the paid for version of chatGPT, which Gemini then corrected
+  a bit. I found nothing in the literature about this. Also, there is no
+  proof that the formula is correct, it just looks right. The constancy of
+  the total energy is only a necessary condition for the correctness of the
+  formula, but it was fulfilled with obviously wrong formulae as well.
 - The special case of the ellipse running on a horizontal line is solved
   explicitly here:
   https://www.mapleprimes.com/DocumentFiles/210428_post/rolling-ellipse.pdf
@@ -163,41 +170,31 @@ umx_c = mx_c.diff(t).subs({x.diff(t): ux, q.diff(t): u})
 umy_c = my_c.diff(t).subs({x.diff(t): ux, q.diff(t): u})
 
 # %%
-# Relationship of x(t) to q(t):
+# Relationship of :math:`\dot{x}(t)` to :math:`\dot{q}(t)`:
 #
 # The goal is to find the speed of the contact point as a function of the
 # angular velocity of the ellipse, and of course other parameters.
 #
-# - let :math:`\alpha = \arctan(\frac{d}{dx}f(x))` the angle of the tangent at
-#   the contact point
-# - then :math:`\phi = \alpha + \frac{\pi}{2}` is the direction normal to the
-#   tangent
+#Thecformula below was found by (the paid for version of) chatGPT
 #
-# - :math:`h(\phi - \alpha) = \sqrt{a^2 \cdot \cos^2(\phi - \alpha) + b^2
-#   \cdot \sin^2(\phi - \alpha)}` is the distance from the center of the
-#   ellipse to the tangent.
-#
-# Rolling without slipping is:
-#
-# - arc speed along the curve = tangential speed of the ellipse at the contact
-#   point, that is:
-#
-# - :math:`\dfrac{d}{dt}s(t) = \sqrt{1 + \frac{d}{dx}f(x)^2} \cdot
-#   \frac{d}{dt}x(t)
-#   = h(\phi - \alpha) \cdot \dfrac{d}{dt}q(t)`
-#
-# Hence one gets:
-#
-# - :math:`\frac{d}{dt}x(t) = -\dfrac{h(\phi - \alpha)}{\sqrt{1 +
-#   \frac{d}{dx}f(x)^2}}
-#   \cdot \frac{d}{dt}q(t)`
-#
-# The minus sign is a result of the right hand convention.
+# :math:`\dot {x}(t) = - \dfrac{(1 + \left[\frac{d}{dx}f(x)\right]^2) \cdot a^2
+# \cdot b^2}
+# {\left(a^2 \cdot(\sin(q) - \frac{d}{dx}f(x) \cdot \cos(q))^2 + b^2
+# \cdot(\cos(q) +
+# \frac{d}{dx}f(x) \cdot \sin(q))^2 \right)^{\frac{3}{2}} - a^2 \cdot b^2 \cdot
+# \frac{d^2}{dx^2}f(x) } \cdot \dot{q}(t)`
 
-phi = sm.atan(gesamtdx) + sm.pi/2
-sigma = ((a*sm.sin(phi - q))**2 + (b*sm.cos(phi - q))**2)**(1/2)
-subs_dict1 = {sm.Derivative(q, t): u}
-rhsx = (-u * sigma/sm.sqrt(1. + gesamtdx**2)).subs(subs_dict1)
+#
+fdx = gesamt.diff(x)
+fdxdx = fdx.diff(x)
+
+denom = ((a*a*(sm.sin(q) - fdx*sm.cos(q))**2 + b*b*(sm.cos(q) +
+                                                    fdx*sm.sin(q))**2)**(3/2) -
+         a**2 * b**2 * fdxdx)
+
+num = (1 + gesamt.diff(x)**2) * a**2 * b**2
+
+rhsx = -u * num / denom
 # %%
 # Contact point position and velocity.
 CP.set_pos(P0, x*N.x + y*N.y)
