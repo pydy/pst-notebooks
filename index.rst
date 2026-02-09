@@ -43,3 +43,102 @@ Mechanics Animations
    Bumpy Surface" frameborder="0" allow="accelerometer; autoplay;
    clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+
+Comparisons
+-----------
+
+John T. Betts' book *Practical Methods for Optimal Control Using Nonlinear
+Programming* is considered to be a foundational text in the field of
+optimal control using nonlinear programming.
+In its section 10 it gives a number of example problems with solutions.
+The solutions were calculated by ``SOS``, a Fortran 95 proprietary code
+written by Dr. Betts and collaborators, and maintained by ASTOS GmbH.
+
+We solved a number of them using ``opty``.
+They may be found at these locations:
+
+- location 1: https://opty.readthedocs.io/stable/examples/index.html#beginner
+- location 2. https://opty.readthedocs.io/stable/examples/index.html#intermediate
+- location 3: https://pydy.org/pst-notebooks/
+
+Notes:
+------
+
+- The number of the examples, e.g. 10.58 refers to the numbering in the a.m.
+  book, 3rd edition, 2020.
+- Dr. John Betts was always very helpful and answered any questions I had
+  regarding the examples.
+- While most of the examples we tried to solve with ``opty`` converged easily
+  to a result close to that given in the book, a few did not converge.
+- By accuracy is meant the deviation from the solution given in the book.
+
+List of Examples Solved with ``opty``
+-------------------------------------
+
++----------+---------------+------------+------------------------------------+
+|**Number**|**Name**       |**Location**|**Remarks**                         |
++----------+---------------+------------+------------------------------------+
+| 10.1     |Stiff Set of   | 3          | Differential equation designed to  |
+|          |DAEs           |            | be very stiff. Accuracy 1.05%      |
++----------+---------------+------------+------------------------------------+
+| 10.6     |Underwater     | 3          | Accuracy 0.095%                    |
+|          |Vehicle        |            |                                    |
++----------+---------------+------------+------------------------------------+
+| 10.7     |Hypersensitive | 1          | Accuracy 0.143%                    |
+|          |Control        |            |                                    |
++----------+---------------+------------+------------------------------------+
+| 10.43    | Free Flying   | 3          | Accuracy 2.77%                     |
+|          | Robot         |            |                                    |
++----------+---------------+------------+------------------------------------+
+| 10.47    |Singular Arc   | 2          | Three Phase Problem. While ``SOS`` |
+|          |Problem        |            | solved it simultaneously, ``opty`` |
+|          |               |            | had to solve it in separate stages.|
+|          |               |            | Overall accuracy < 0.95%           |
++----------+---------------+------------+------------------------------------+
+| 10.50    |Delay Equation | 1          | Accuracy 0.027%                    |
++----------+---------------+------------+------------------------------------+
+| 10.57    |Heat Diffusion | 3          | Accuracy 1.17%                     |
+|          |Process with   |            |                                    |
+|          |Inequality     |            |                                    |
++----------+---------------+------------+------------------------------------+
+| 10.58    |Heat Equation  | 3          |This deals with the discretization  |
+|          |               |            |of a PDE. ``opty`` converged, but   |
+|          |               |            |the accuracy was not good.          |
++----------+---------------+------------+------------------------------------+
+| 10.73    |Linear Tangent | 3          |The same physical problem,          |
+| 10.74    |Steering       |            |formulated in two different ways.   |
+|          |               |            |Accuracy 0.00012%                   |
++----------+---------------+------------+------------------------------------+
+| 10.90    |Nonconvex delay| 3          |Accuracy 0.004%                     |
++----------+---------------+------------+------------------------------------+
+| 10.103   |Compare DAE vs.| 1          |The same physical problem           |
+| 10.104   |ODE Formulation|            |formulated in two different ways.   |
+|          |               |            |Accuracy 2.49%                      |
++----------+---------------+------------+------------------------------------+
+| 10.113   |Mixed          | 3          |Accuracy 0.03%                      |
+|          |State-Control  |            |                                    |
+|          |Constraints    |            |                                    |
++----------+---------------+------------+------------------------------------+
+| 10.133   |Two-Strain     | 3          |Accuracy 0.16%                      |
+|          |Tuberculosis   |            |                                    |
+|          |Model          |            |                                    |
++----------+---------------+------------+------------------------------------+
+| 10.141   |Tumor Anti     | 3          |Accuracy 1.45% / 0.1975%            |
+|          |angiogenesis   |            |                                    |
++----------+---------------+------------+------------------------------------+
+| 10.144   |Van der Pol    | 3          |Two different formulations of the   |
+| 10.145   |Oscillator     |            |same problem. Accuracy 0.017%       |
++----------+---------------+------------+------------------------------------+
+| 10.148   |Zermelo's      | 3          |Accuracy 0.023%                     |
+|          |Problem        |            |                                    |
++----------+---------------+------------+------------------------------------+
+|          |Parameter      | 1          |Accuracy 0.021%                     |
+|          |Identification |            |                                    |
+|          |Betts &        |            |                                    |
+|          |Huffmann 2003  |            |                                    |
++----------+---------------+------------+------------------------------------+
+|          |Brachistochrone| 3          |As per section 4.16.2 of the a.m.   |
+|          |with           |            |book this can be difficult. ``opty``|
+|          |Obstruction    |            |solved it with no problems.         |
++----------+---------------+------------+------------------------------------+
