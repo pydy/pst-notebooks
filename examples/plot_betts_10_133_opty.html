@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Two-Strain Tuberculosis Model (betts_10_133) &#8212; Peter&#39;s Mechanics Examples  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=9899ed2f" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Van der Pol Oscillator (Betts 10.144 / 145)" href="plot_betts_10_144_145_opty.html" />
+    <link rel="prev" title="Underwater Vehicle (betts-10-6)" href="plot_betts_10_6_opty.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-examples-plot-betts-10-133-opty-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code.</p>
+</div>
+<section class="sphx-glr-example-title" id="two-strain-tuberculosis-model-betts-10-133">
+<span id="sphx-glr-examples-plot-betts-10-133-opty-py"></span><h1>Two-Strain Tuberculosis Model (betts_10_133)<a class="headerlink" href="#two-strain-tuberculosis-model-betts-10-133" title="Link to this heading">¶</a></h1>
+<p>This is example 10.133 from <em>John T.Betts, Practical Methods for Optimal
+Control Using NonlinearProgramming</em>, 3rd edition, Chapter 10: Test Problems.</p>
+<p>More details may be found in chapter 8.17 of this book.</p>
+<p><strong>States</strong></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(S, T, L_1, I_1, L_&quot;, I_2\)</span> : state variables</p></li>
+</ul>
+<p><strong>Controls</strong></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(u_1, u_2\)</span> : control variables</p></li>
+</ul>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sympy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sympy.physics.mechanics</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">me</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">opty</span><span class="w"> </span><span class="kn">import</span> <span class="n">Problem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">opty.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_objective_function</span><span class="p">,</span> <span class="n">MathJaxRepr</span>
+</pre></div>
+</div>
+<section id="equations-of-motion">
+<h2>Equations of Motion.<a class="headerlink" href="#equations-of-motion" title="Link to this heading">¶</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">dynamicsymbols</span><span class="o">.</span><span class="n">_t</span>
+
+<span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">L1</span><span class="p">,</span> <span class="n">I1</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="n">I2</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">dynamicsymbols</span><span class="p">(</span><span class="s1">&#39;S T L1 I1 L2 I2&#39;</span><span class="p">)</span>
+<span class="n">u1</span><span class="p">,</span> <span class="n">u2</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">dynamicsymbols</span><span class="p">(</span><span class="s1">&#39;u1, u2&#39;</span><span class="p">)</span>
+
+<span class="n">beta1</span><span class="p">,</span> <span class="n">d2</span><span class="p">,</span> <span class="n">r2</span><span class="p">,</span> <span class="n">betastar</span><span class="p">,</span> <span class="n">beta2</span><span class="p">,</span> <span class="n">k1</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">B1</span><span class="p">,</span> <span class="n">nu</span><span class="p">,</span> <span class="n">k2</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">B2</span><span class="p">,</span> <span class="n">d1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> \
+    <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;beta1 d2 r2 betastar beta2 k1 p B1 nu k2 q B2 d1 r1 N&#39;</span><span class="p">)</span>
+
+<span class="n">Lambda</span> <span class="o">=</span> <span class="n">nu</span> <span class="o">*</span> <span class="n">N</span>
+
+<span class="n">eom</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">Matrix</span><span class="p">([</span>
+    <span class="o">-</span><span class="n">S</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="n">Lambda</span> <span class="o">-</span> <span class="n">beta1</span><span class="o">*</span><span class="n">S</span><span class="o">*</span><span class="n">I1</span><span class="o">/</span><span class="n">N</span> <span class="o">-</span> <span class="n">betastar</span><span class="o">*</span><span class="n">S</span><span class="o">*</span><span class="n">I2</span><span class="o">/</span><span class="n">N</span> <span class="o">-</span> <span class="n">nu</span><span class="o">*</span><span class="n">S</span><span class="p">,</span>
+    <span class="o">-</span><span class="n">T</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">u1</span><span class="o">*</span><span class="n">r1</span><span class="o">*</span><span class="n">L1</span> <span class="o">-</span> <span class="n">nu</span><span class="o">*</span><span class="n">T</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">u2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">p</span><span class="o">+</span><span class="n">q</span><span class="p">))</span><span class="o">*</span><span class="n">r2</span><span class="o">*</span><span class="n">I1</span> <span class="o">-</span>
+                  <span class="n">beta2</span><span class="o">*</span><span class="n">T</span><span class="o">*</span><span class="n">I1</span><span class="o">/</span><span class="n">N</span> <span class="o">-</span> <span class="n">betastar</span><span class="o">*</span><span class="n">T</span><span class="o">*</span><span class="n">I2</span><span class="o">/</span><span class="n">N</span><span class="p">),</span>
+    <span class="o">-</span><span class="n">L1</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">beta1</span><span class="o">*</span><span class="n">S</span><span class="o">*</span><span class="n">I1</span><span class="o">/</span><span class="n">N</span> <span class="o">-</span> <span class="p">(</span><span class="n">nu</span><span class="o">+</span><span class="n">k1</span><span class="p">)</span><span class="o">*</span><span class="n">L1</span> <span class="o">-</span> <span class="n">u1</span><span class="o">*</span><span class="n">r1</span><span class="o">*</span><span class="n">L1</span> <span class="o">+</span>
+                   <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">u2</span><span class="p">)</span><span class="o">*</span><span class="n">p</span><span class="o">*</span><span class="n">r2</span><span class="o">*</span><span class="n">I1</span> <span class="o">+</span> <span class="n">beta2</span><span class="o">*</span><span class="n">T</span><span class="o">*</span><span class="n">I1</span><span class="o">/</span><span class="n">N</span> <span class="o">-</span> <span class="n">betastar</span><span class="o">*</span><span class="n">L1</span><span class="o">*</span><span class="n">I2</span><span class="o">/</span><span class="n">N</span><span class="p">),</span>
+    <span class="o">-</span><span class="n">L2</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">u2</span><span class="p">)</span><span class="o">*</span><span class="n">q</span><span class="o">*</span><span class="n">r2</span><span class="o">*</span><span class="n">I1</span> <span class="o">-</span> <span class="p">(</span><span class="n">nu</span><span class="o">+</span><span class="n">k2</span><span class="p">)</span><span class="o">*</span><span class="n">L2</span> <span class="o">+</span> <span class="n">betastar</span><span class="o">*</span><span class="p">(</span><span class="n">S</span><span class="o">+</span><span class="n">L1</span><span class="o">+</span><span class="n">T</span><span class="p">)</span><span class="o">*</span><span class="n">I2</span><span class="o">/</span><span class="n">N</span><span class="p">,</span>
+    <span class="o">-</span><span class="n">I1</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="n">k1</span><span class="o">*</span><span class="n">L1</span> <span class="o">-</span> <span class="p">(</span><span class="n">nu</span><span class="o">+</span><span class="n">d1</span><span class="p">)</span><span class="o">*</span><span class="n">I1</span> <span class="o">-</span> <span class="n">r2</span><span class="o">*</span><span class="n">I1</span><span class="p">,</span>
+    <span class="o">-</span><span class="n">I2</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">+</span> <span class="n">k2</span><span class="o">*</span><span class="n">L2</span> <span class="o">-</span> <span class="p">(</span><span class="n">nu</span><span class="o">+</span><span class="n">d2</span><span class="p">)</span><span class="o">*</span><span class="n">I2</span><span class="p">,</span>
+<span class="p">])</span>
+
+<span class="n">MathJaxRepr</span><span class="p">(</span><span class="n">eom</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="output_subarea output_html rendered_html output_result">
+$$\left[\begin{matrix}N \nu - \nu S - \dot{S} - \frac{\beta_{1} I_{1} S}{N} - \frac{betastar I_{2} S}{N}\\- \nu T + r_{1} L_{1} u_{1} + r_{2} \left(- \left(1 - u_{2}\right) \left(p + q\right) + 1\right) I_{1} - \dot{T} - \frac{\beta_{2} I_{1} T}{N} - \frac{betastar I_{2} T}{N}\\p r_{2} \left(1 - u_{2}\right) I_{1} - r_{1} L_{1} u_{1} - \left(k_{1} + \nu\right) L_{1} - \dot{L}_{1} + \frac{\beta_{1} I_{1} S}{N} + \frac{\beta_{2} I_{1} T}{N} - \frac{betastar I_{2} L_{1}}{N}\\q r_{2} \left(1 - u_{2}\right) I_{1} - \left(k_{2} + \nu\right) L_{2} - \dot{L}_{2} + \frac{betastar \left(L_{1} + S + T\right) I_{2}}{N}\\k_{1} L_{1} - r_{2} I_{1} - \left(d_{1} + \nu\right) I_{1} - \dot{I}_{1}\\k_{2} L_{2} - \left(d_{2} + \nu\right) I_{2} - \dot{I}_{2}\end{matrix}\right]$$
+</div>
+<br />
+<br /></section>
+<section id="define-and-solve-the-optimization-problem">
+<h2>Define and Solve the Optimization Problem<a class="headerlink" href="#define-and-solve-the-optimization-problem" title="Link to this heading">¶</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">num_nodes</span> <span class="o">=</span> <span class="mi">801</span>
+
+<span class="n">t0</span><span class="p">,</span> <span class="n">tf</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">5.0</span>
+<span class="n">interval_value</span> <span class="o">=</span> <span class="n">tf</span> <span class="o">/</span> <span class="p">(</span><span class="n">num_nodes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">state_symbols</span> <span class="o">=</span> <span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">L1</span><span class="p">,</span> <span class="n">L2</span><span class="p">,</span> <span class="n">I1</span><span class="p">,</span> <span class="n">I2</span><span class="p">)</span>
+<span class="n">unkonwn_input_trajectories</span> <span class="o">=</span> <span class="p">(</span><span class="n">u1</span><span class="p">,</span> <span class="n">u2</span><span class="p">)</span>
+
+<span class="n">par_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">beta1</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
+    <span class="n">d2</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">r2</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">betastar</span><span class="p">:</span> <span class="mf">0.029</span><span class="p">,</span>
+    <span class="n">beta2</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span>
+    <span class="n">k1</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">p</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">,</span>
+    <span class="n">B1</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+    <span class="n">nu</span><span class="p">:</span> <span class="mf">0.0143</span><span class="p">,</span>
+    <span class="n">k2</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">q</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">B2</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+    <span class="n">d1</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">r1</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">N</span><span class="p">:</span> <span class="mi">30000</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Specify the objective function and form the gradient.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">objective</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">Integral</span><span class="p">((</span><span class="n">L2</span> <span class="o">+</span> <span class="n">I2</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">B1</span><span class="o">*</span><span class="n">u1</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span>
+                         <span class="mf">0.5</span><span class="o">*</span><span class="n">B2</span><span class="o">*</span><span class="n">u2</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="n">par_map</span><span class="p">),</span> <span class="n">t</span><span class="p">)</span>
+
+<span class="n">obj</span><span class="p">,</span> <span class="n">obj_grad</span> <span class="o">=</span> <span class="n">create_objective_function</span><span class="p">(</span>
+    <span class="n">objective</span><span class="p">,</span>
+    <span class="n">state_symbols</span><span class="p">,</span>
+    <span class="n">unkonwn_input_trajectories</span><span class="p">,</span>
+    <span class="nb">tuple</span><span class="p">(),</span>
+    <span class="n">num_nodes</span><span class="p">,</span>
+    <span class="n">interval_value</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Instance constraints and bounds.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">instance_constraints</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">S</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">76</span><span class="o">*</span><span class="n">par_map</span><span class="p">[</span><span class="n">N</span><span class="p">]</span><span class="o">/</span><span class="mi">120</span><span class="p">,</span>
+    <span class="n">T</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span> <span class="o">-</span> <span class="n">par_map</span><span class="p">[</span><span class="n">N</span><span class="p">]</span><span class="o">/</span><span class="mi">120</span><span class="p">,</span>
+    <span class="n">L1</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">36</span><span class="o">*</span><span class="n">par_map</span><span class="p">[</span><span class="n">N</span><span class="p">]</span><span class="o">/</span><span class="mi">120</span><span class="p">,</span>
+    <span class="n">I1</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">4</span><span class="o">*</span><span class="n">par_map</span><span class="p">[</span><span class="n">N</span><span class="p">]</span><span class="o">/</span><span class="mi">120</span><span class="p">,</span>
+    <span class="n">L2</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">par_map</span><span class="p">[</span><span class="n">N</span><span class="p">]</span><span class="o">/</span><span class="mi">120</span><span class="p">,</span>
+    <span class="n">I2</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span> <span class="o">-</span> <span class="n">par_map</span><span class="p">[</span><span class="n">N</span><span class="p">]</span><span class="o">/</span><span class="mi">120</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">bounds</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">u1</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">),</span>
+        <span class="n">u2</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">),</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Create the optimization problem.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">,</span>
+    <span class="n">obj_grad</span><span class="p">,</span>
+    <span class="n">eom</span><span class="p">,</span>
+    <span class="n">state_symbols</span><span class="p">,</span>
+    <span class="n">num_nodes</span><span class="p">,</span>
+    <span class="n">interval_value</span><span class="p">,</span>
+    <span class="n">instance_constraints</span><span class="o">=</span><span class="n">instance_constraints</span><span class="p">,</span>
+    <span class="n">known_parameter_map</span><span class="o">=</span><span class="n">par_map</span><span class="p">,</span>
+    <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+    <span class="n">time_symbol</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<p>Acceptable tolerance and iteration settings are lowered, to get convergence
+with a reasonable number of iterations.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;max_iter&#39;</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;acceptable_tol&#39;</span><span class="p">,</span> <span class="mf">1e-2</span><span class="p">)</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s1">&#39;acceptable_iter&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Rough initial guess.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">initial_guess</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">num_free</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Find the optimal solution.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">start_solve</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">solution</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">initial_guess</span><span class="p">)</span>
+<span class="n">end_solve</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Solve time: </span><span class="si">{</span><span class="n">end_solve</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_solve</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;status_msg&#39;</span><span class="p">])</span>
+<span class="n">Jstar</span> <span class="o">=</span> <span class="mf">5152.07310</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Objective value achieved: </span><span class="si">{</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;obj_val&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, &quot;</span><span class="p">,</span>
+      <span class="sa">f</span><span class="s2">&quot;as per the book it is </span><span class="si">{</span><span class="n">Jstar</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, so the deviation is: &quot;</span><span class="p">,</span>
+      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;obj_val&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">Jstar</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">Jstar</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> %&quot;</span><span class="p">)</span>
+<span class="n">Tbstar</span> <span class="o">=</span> <span class="mi">1123</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Individuals infected with resistant Tb = &quot;</span><span class="p">,</span>
+      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solution</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">num_nodes</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">solution</span><span class="p">[</span><span class="mi">6</span><span class="o">*</span><span class="n">num_nodes</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, &quot;</span><span class="p">,</span>
+      <span class="sa">f</span><span class="s2">&quot;vs. </span><span class="si">{</span><span class="n">Tbstar</span><span class="si">}</span><span class="s2"> from the book, hence deviation: &quot;</span><span class="p">,</span>
+      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">num_nodes</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">solution</span><span class="p">[</span><span class="mi">6</span><span class="o">*</span><span class="n">num_nodes</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span>
+<span class="w">         </span><span class="n">Tbstar</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">Tbstar</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> %&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Solve time: 65.949 seconds
+b&#39;Algorithm stopped at a point that was converged, not to &quot;desired&quot; tolerances, but to &quot;acceptable&quot; tolerances (see the acceptable-... options).&#39;
+Objective value achieved: 5154.9859,  as per the book it is 5152.0731, so the deviation is:  0.057 %
+Individuals infected with resistant Tb =  1121.198,  vs. 1123 from the book, hence deviation:  -0.160 %
+</pre></div>
+</div>
+<p>Plot the optimal state and input trajectories.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">plot_trajectories</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">show_bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_betts_10_133_opty_001.png" srcset="../_images/sphx_glr_plot_betts_10_133_opty_001.png" alt="State Trajectories, Input Trajectories" class = "sphx-glr-single-img"/><p>Plot the constraint violations.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">plot_constraint_violations</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_betts_10_133_opty_002.png" srcset="../_images/sphx_glr_plot_betts_10_133_opty_002.png" alt="Constraint violations" class = "sphx-glr-single-img"/><p>Plot the objective function as a function of optimizer iteration.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">plot_objective_value</span><span class="p">()</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_betts_10_133_opty_003.png" srcset="../_images/sphx_glr_plot_betts_10_133_opty_003.png" alt="Objective Value" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (1 minutes 14.299 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-plot-betts-10-133-opty-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/061eb9c5ec70193df108fade174f6f76/plot_betts_10_133_opty.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_betts_10_133_opty.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/52a74e2fd1818453b93eccb2e0da0547/plot_betts_10_133_opty.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_betts_10_133_opty.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/21e05f8fd529f1fdd28911681d02345c/plot_betts_10_133_opty.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">plot_betts_10_133_opty.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Peter's Mechanics Examples</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=pydy&repo=pst-notebooks&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">See the Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_148_opty.html">Zermelo’s Problem (betts-10-148)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_113_opty.html">Mixed State-Control Constraints (betts-10-113)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_90_opty.html">Nonconvex Delay (betts_10_90)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_141_opty.html">Tumor Antigionesis (betts_10_141)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_58_opty.html">Heat Equation (betts_10_58)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_43_opty.html">Free-Flying Robot (betts_10_43)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_1_opty.html">Stiff Set of DAEs (betts-10-1)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_57_opty.html">Heat Diffusion Process with Inequality (betts_10_57)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_6_opty.html">Underwater Vehicle (betts-10-6)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Two-Strain Tuberculosis Model (betts_10_133)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_144_145_opty.html">Van der Pol Oscillator  (Betts 10.144 / 145)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_144_145_opty.html#first-version-of-the-problem-10-144">First version of the problem (10.144)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_144_145_opty.html#second-version-of-the-problem-10-145">Second version of the problem (10.145)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_73_74_opty.html">Linear Tangent Steering (betts_10_73_74)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_73_74_opty.html#example-10-74">Example 10.74</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_73_74_opty.html#example-10-73">Example 10.73</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_identification_of_four_parameters_opty.html">Parameter Identification with Non-Contiguous Measurements.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_brachi_obstruction_opty.html">Brachistochrone with Obstruction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_estimate_time_delay.html">Time Delay Estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_block_on_disc_coulomb_friction.html">Block Sliding on a Spinning Disc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_chain_symjit.html">Example Using symjit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_particle_different_eoms.html">Particle in Changing Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_balancing_wheel.html">Automatic Balancing of a Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_T_handle.html">Rotating T-handle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_particle_gates_h_opty.html">Particle Through Gates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_car_hits_points.html">Car hits Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_particle_on_numerical_surface.html">Particle on Numerical Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_two_body_skateboard.html">Two Body Skateboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_synchronisation.html">Synchronisation of Clocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_sailboat_around_buoy.html">Sailboat Around Buoy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_wood_pecker.html">Wood Pecker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_chain_link_closed.html">Closed Chain</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_d_levinson_lecture_6.html">Spacecraft with Nutation Damper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_car_on_racecourse_delay_opty.html">Battery driven car on a Race Course</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_disc_on_uneven_street.html">Disc on Very Uneven Street, No Jumping Allowed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_3d_drone_propeller.html">3D Drone with Propellers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_spoked_wheel.html">Spoked, Rimless Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ball_bouncing_between_two_horizontal_planes.html">Ball bouncing between two planes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_explorer_anomaly.html">Explorer Anomaly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ellipse_bouncing_on_street_HC_theory.html">Bouncing Ellipse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_hc_colliding_discs_friction_circle.html">Colliding Discs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_hc_rolling_balls_uneven_street.html">Two Balls Rolling on an Uneven Street</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_hc_colliding_ellipses_circle.html">Colliding Ellipses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_two_ellipses_bouncing.html">Two Ellipses Bouncing on a Wavy Street</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">See the Examples</a><ul>
+      <li>Previous: <a href="plot_betts_10_6_opty.html" title="previous chapter">Underwater Vehicle (betts-10-6)</a></li>
+      <li>Next: <a href="plot_betts_10_144_145_opty.html" title="next chapter">Van der Pol Oscillator  (Betts 10.144 / 145)</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Peter Stahlecker.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/examples/plot_betts_10_133_opty.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
