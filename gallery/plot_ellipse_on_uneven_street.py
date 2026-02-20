@@ -20,17 +20,16 @@ The only issues her are geometric:
   - Find the speed of the contact point as a function of the angular velocity
     of the ellipse, and of course other parameters.
 
-- The first issue is relatively simple: I found a way, but chatgpT found a
+- The first issue is relatively simple: I found a way, but chatGPT found a
   simpler way.
-- The second issue is much more difficult. Finally the 'solution' used here
-  was found by the paid for version of chatGPT, which Gemini then corrected
-  a bit. I found nothing in the literature about this. Also, there is no
-  proof that the formula is correct, it just looks right. The constancy of
-  the total energy is only a necessary condition for the correctness of the
-  formula, but it was fulfilled with obviously wrong formulae as well.
-- The special case of the ellipse running on a horizontal line is solved
-  explicitly here:
-  https://www.mapleprimes.com/DocumentFiles/210428_post/rolling-ellipse.pdf
+- The second issue is much more difficult.
+
+  - The special case of the ellipse running on a horizontal line is solved
+    explicitly here:
+    https://www.mapleprimes.com/DocumentFiles/210428_post/rolling-ellipse.pdf
+  - **Dr. Carlos Roithmayr** found the formula for the general case and generously
+    shared it with me, see the document.
+    https://www.dropbox.com/scl/fi/tfcxldh5zmycwkm7michi/Planar_Ellipse_Rolling_on_a_Curve.pdf?rlkey=t4bn3zxm1k9z5vh72epgazxvy&st=69bwwn9s&dl=0
 
 **Parameters**
 
