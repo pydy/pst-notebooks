@@ -28,10 +28,13 @@ Notes
 - Reaction forces on the contact point :math:`C_P` cannot be calculated in this
   model. Presumably because it is not attached to the ellipse as far as this
   model is concerned.
-- Note the coment in the function ``event`` near the statement ``np.isclose``
+- Note the comment in the function ``event`` near the statement ``np.isclose``
 - The special case of the ellipse running on a horizontal line is solved
   explicitly here:
   https://www.mapleprimes.com/DocumentFiles/210428_post/rolling-ellipse.pdf
+- The general case, used here, was solved by **Dr. Carlos Roithmayr** and
+  generously shared it with me, see the document.
+  https://www.dropbox.com/scl/fi/tfcxldh5zmycwkm7michi/Planar_Ellipse_Rolling_on_a_Curve.pdf?rlkey=t4bn3zxm1k9z5vh72epgazxvy&st=69bwwn9s&dl=0
 
 **Parameters**
 
