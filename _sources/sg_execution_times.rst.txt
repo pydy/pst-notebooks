@@ -1,0 +1,163 @@
+
+:orphan:
+
+.. _sphx_glr_sg_execution_times:
+
+
+Computation times
+=================
+**03:57.535** total execution time for 43 files **from all galleries**:
+
+.. container::
+
+  .. raw:: html
+
+    <style scoped>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script type="text/javascript" class="init">
+    $(document).ready( function () {
+        $('table.sg-datatable').DataTable({order: [[1, 'desc']]});
+    } );
+    </script>
+
+  .. list-table::
+   :header-rows: 1
+   :class: table table-striped sg-datatable
+
+   * - Example
+     - Time
+     - Mem (MB)
+   * - :ref:`sphx_glr_examples_plot_ellipsoid_rolling_on_uneven_surface.py` (``gallery\plot_ellipsoid_rolling_on_uneven_surface.py``)
+     - 03:57.535
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_3d_drone_propeller.py` (``gallery\plot_3d_drone_propeller.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_T_handle.py` (``gallery\plot_T_handle.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_balancing_wheel.py` (``gallery\plot_balancing_wheel.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_ball_bouncing_between_two_horizontal_planes.py` (``gallery\plot_ball_bouncing_between_two_horizontal_planes.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_113_opty.py` (``gallery\plot_betts_10_113_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_133_opty.py` (``gallery\plot_betts_10_133_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_141_opty.py` (``gallery\plot_betts_10_141_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_144_145_opty.py` (``gallery\plot_betts_10_144_145_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_148_opty.py` (``gallery\plot_betts_10_148_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_1_opty.py` (``gallery\plot_betts_10_1_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_43_opty.py` (``gallery\plot_betts_10_43_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_57_opty.py` (``gallery\plot_betts_10_57_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_58_opty.py` (``gallery\plot_betts_10_58_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_6_opty.py` (``gallery\plot_betts_10_6_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_73_74_opty.py` (``gallery\plot_betts_10_73_74_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_betts_10_90_opty.py` (``gallery\plot_betts_10_90_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_block_on_disc_coulomb_friction.py` (``gallery\plot_block_on_disc_coulomb_friction.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_brachi_obstruction_opty.py` (``gallery\plot_brachi_obstruction_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_car_hits_points.py` (``gallery\plot_car_hits_points.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_car_on_racecourse_delay_opty.py` (``gallery\plot_car_on_racecourse_delay_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_chain_link_closed.py` (``gallery\plot_chain_link_closed.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_chain_symjit.py` (``gallery\plot_chain_symjit.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_d_levinson_lecture_6.py` (``gallery\plot_d_levinson_lecture_6.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_disc_on_uneven_street.py` (``gallery\plot_disc_on_uneven_street.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_ellipse_bouncing_on_street_HC_theory.py` (``gallery\plot_ellipse_bouncing_on_street_HC_theory.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_ellipse_on_uneven_street.py` (``gallery\plot_ellipse_on_uneven_street.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_ellipse_on_very_uneven_street.py` (``gallery\plot_ellipse_on_very_uneven_street.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_estimate_time_delay.py` (``gallery\plot_estimate_time_delay.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_explorer_anomaly.py` (``gallery\plot_explorer_anomaly.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_hc_colliding_discs_friction_circle.py` (``gallery\plot_hc_colliding_discs_friction_circle.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_hc_colliding_ellipses_circle.py` (``gallery\plot_hc_colliding_ellipses_circle.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_hc_rolling_balls_uneven_street.py` (``gallery\plot_hc_rolling_balls_uneven_street.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_identification_of_four_parameters_opty.py` (``gallery\plot_identification_of_four_parameters_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_particle_different_eoms.py` (``gallery\plot_particle_different_eoms.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_particle_gates_h_opty.py` (``gallery\plot_particle_gates_h_opty.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_particle_on_numerical_surface.py` (``gallery\plot_particle_on_numerical_surface.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_sailboat_around_buoy.py` (``gallery\plot_sailboat_around_buoy.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_spoked_wheel.py` (``gallery\plot_spoked_wheel.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_synchronisation.py` (``gallery\plot_synchronisation.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_two_body_skateboard.py` (``gallery\plot_two_body_skateboard.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_two_ellipses_bouncing.py` (``gallery\plot_two_ellipses_bouncing.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_examples_plot_wood_pecker.py` (``gallery\plot_wood_pecker.py``)
+     - 00:00.000
+     - 0.0

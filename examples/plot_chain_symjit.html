@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Example Using symjit &#8212; Peter&#39;s Mechanics Examples  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=9899ed2f" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Particle in Changing Environment" href="plot_particle_different_eoms.html" />
+    <link rel="prev" title="Block Sliding on a Spinning Disc" href="plot_block_on_disc_coulomb_friction.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-examples-plot-chain-symjit-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code.</p>
+</div>
+<section class="sphx-glr-example-title" id="example-using-symjit">
+<span id="sphx-glr-examples-plot-chain-symjit-py"></span><h1>Example Using symjit<a class="headerlink" href="#example-using-symjit" title="Link to this heading">¶</a></h1>
+<section id="objective">
+<h2>Objective<a class="headerlink" href="#objective" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>show how to use symjit as an alternative to lambdify</p></li>
+</ul>
+</section>
+<section id="explanation">
+<h2>Explanation<a class="headerlink" href="#explanation" title="Link to this heading">¶</a></h2>
+<p>symjit (version 2.4.0 and up) is an alternative to symy’s lambdify. As the
+usage is slightly different from lambdify, the differences are shown here.</p>
+<p>The simulation is a simple 2D pendulum consisting of n links attached to a
+ceiling.</p>
+<p><strong>States</strong></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(q_{i}\)</span> : The angle of link i w.r.t the inertial frame</p></li>
+<li><p><span class="math notranslate nohighlight">\(u_{i}\)</span> : The angular velocity of link i w.r.t the inertial frame</p></li>
+</ul>
+<p><strong>Parameters</strong></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(l\)</span> : The length of each link</p></li>
+<li><p><span class="math notranslate nohighlight">\(m\)</span> : The mass of each link</p></li>
+<li><p><span class="math notranslate nohighlight">\(iZZ\)</span> : The moment of inertia of each link around its center of mass</p></li>
+<li><p><span class="math notranslate nohighlight">\(\textrm{reibung}\)</span> : The friction coefficient at each joint</p></li>
+</ul>
+<p><strong>Others</strong></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(O\)</span> : The inertial frame</p></li>
+<li><p><span class="math notranslate nohighlight">\(PO\)</span> : A point fixed in the inertial frame</p></li>
+<li><p><span class="math notranslate nohighlight">\(A[i]\)</span> : The body fixed frame of link i</p></li>
+<li><p><span class="math notranslate nohighlight">\(Dmc[i]\)</span> : The center of gravity of link i</p></li>
+<li><p><span class="math notranslate nohighlight">\(P[i]\)</span> : The point where frame A[i] joins frame A[i+1]</p></li>
+<li><p><span class="math notranslate nohighlight">\(l\)</span> : The length of the pendulum, that is each link has
+length = $dfrac{l}{n}$</p></li>
+</ul>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sympy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sympy.physics.mechanics</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">me</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_ivp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">symjit</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_func</span>
+</pre></div>
+</div>
+</section>
+<section id="kane-s-equations-of-motion">
+<h2>Kane’s Equations of Motion<a class="headerlink" href="#kane-s-equations-of-motion" title="Link to this heading">¶</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># n = number of links</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="c1"># If term_info is True information about the mass matrix and the force vector</span>
+<span class="c1"># is printed</span>
+<span class="n">term_info</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">plot_energies</span> <span class="o">=</span> <span class="kc">True</span>   <span class="c1"># if True the energies are plotted</span>
+<span class="n">symJIT</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># If True symjit&#39;s compile_func is used, else lambdify</span>
+
+<span class="n">m</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">iZZ</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">reibung</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;m, g, iZZ, l, reibung&#39;</span><span class="p">)</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">dynamicsymbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;q:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">dynamicsymbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;u:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">dynamicsymbols</span><span class="o">.</span><span class="n">_t</span>
+
+<span class="n">A</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;A:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">me</span><span class="o">.</span><span class="n">ReferenceFrame</span><span class="p">)</span>
+<span class="n">Dmc</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Dmc:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">me</span><span class="o">.</span><span class="n">Point</span><span class="p">)</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;P:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">me</span><span class="o">.</span><span class="n">Point</span><span class="p">)</span>
+<span class="n">rhs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;rhs:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">))</span>
+
+<span class="n">O</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">ReferenceFrame</span><span class="p">(</span><span class="s1">&#39;O&#39;</span><span class="p">)</span>
+<span class="n">PO</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="s1">&#39;PO&#39;</span><span class="p">)</span>
+<span class="n">PO</span><span class="o">.</span><span class="n">set_vel</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="n">l1</span> <span class="o">=</span> <span class="n">l</span><span class="o">/</span><span class="n">n</span>
+<span class="n">l2</span> <span class="o">=</span> <span class="n">l</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+
+<span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">orient_axis</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">O</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+<span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ang_vel</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">O</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+
+<span class="n">Dmc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_pos</span><span class="p">(</span><span class="n">PO</span><span class="p">,</span> <span class="n">l2</span><span class="o">*</span><span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+<span class="n">Dmc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">v2pt_theory</span><span class="p">(</span><span class="n">PO</span><span class="p">,</span> <span class="n">O</span><span class="p">,</span> <span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_pos</span><span class="p">(</span><span class="n">PO</span><span class="p">,</span> <span class="n">l1</span><span class="o">*</span><span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+<span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">v2pt_theory</span><span class="p">(</span><span class="n">PO</span><span class="p">,</span> <span class="n">O</span><span class="p">,</span> <span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">orient_axis</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">O</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_ang_vel</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">O</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+
+    <span class="n">Dmc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_pos</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">l2</span><span class="o">*</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">Dmc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">v2pt_theory</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">O</span><span class="p">,</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_pos</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">l1</span><span class="o">*</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">v2pt_theory</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">O</span><span class="p">,</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+<span class="n">BODY</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="n">inertia</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">inertia</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">iZZ</span><span class="p">)</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">RigidBody</span><span class="p">(</span><span class="s1">&#39;body&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">Dmc</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">m</span><span class="p">,</span> <span class="p">(</span><span class="n">inertia</span><span class="p">,</span> <span class="n">Dmc</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+    <span class="n">BODY</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+
+<span class="n">FL1</span> <span class="o">=</span> <span class="p">[(</span><span class="n">Dmc</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">-</span><span class="n">m</span><span class="o">*</span><span class="n">g</span><span class="o">*</span><span class="n">O</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+<span class="n">Torque</span> <span class="o">=</span> <span class="p">[(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">-</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">reibung</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">z</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+<span class="n">FL</span> <span class="o">=</span> <span class="n">FL1</span> <span class="o">+</span> <span class="n">Torque</span>
+
+<span class="n">kd</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+
+<span class="n">KM</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">KanesMethod</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="n">q_ind</span><span class="o">=</span><span class="n">q</span><span class="p">,</span> <span class="n">u_ind</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">kd_eqs</span><span class="o">=</span><span class="n">kd</span><span class="p">)</span>
+<span class="p">(</span><span class="n">fr</span><span class="p">,</span> <span class="n">frstar</span><span class="p">)</span> <span class="o">=</span> <span class="n">KM</span><span class="o">.</span><span class="n">kanes_equations</span><span class="p">(</span><span class="n">BODY</span><span class="p">,</span> <span class="n">FL</span><span class="p">)</span>
+
+<span class="n">MM</span> <span class="o">=</span> <span class="n">KM</span><span class="o">.</span><span class="n">mass_matrix_full</span>
+<span class="k">if</span> <span class="n">term_info</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MM DS&#39;</span><span class="p">,</span> <span class="n">me</span><span class="o">.</span><span class="n">find_dynamicsymbols</span><span class="p">(</span><span class="n">MM</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;MM free symbols&#39;</span><span class="p">,</span> <span class="n">MM</span><span class="o">.</span><span class="n">free_symbols</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;MM contains </span><span class="si">{</span><span class="n">sm</span><span class="o">.</span><span class="n">count_ops</span><span class="p">(</span><span class="n">MM</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> operations, &#39;</span>
+          <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">sm</span><span class="o">.</span><span class="n">count_ops</span><span class="p">(</span><span class="n">sm</span><span class="o">.</span><span class="n">cse</span><span class="p">(</span><span class="n">MM</span><span class="p">))</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> after cse&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="n">force</span> <span class="o">=</span> <span class="n">KM</span><span class="o">.</span><span class="n">forcing_full</span>
+<span class="k">if</span> <span class="n">term_info</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;force DS&#39;</span><span class="p">,</span> <span class="n">me</span><span class="o">.</span><span class="n">find_dynamicsymbols</span><span class="p">(</span><span class="n">force</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;force free symbols&#39;</span><span class="p">,</span> <span class="n">force</span><span class="o">.</span><span class="n">free_symbols</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;force contains </span><span class="si">{</span><span class="n">sm</span><span class="o">.</span><span class="n">count_ops</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> operations &#39;</span>
+          <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">sm</span><span class="o">.</span><span class="n">count_ops</span><span class="p">(</span><span class="n">sm</span><span class="o">.</span><span class="n">cse</span><span class="p">(</span><span class="n">force</span><span class="p">))</span><span class="si">:</span><span class="s1">,</span><span class="si">}</span><span class="s1"> after cse&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>MM DS {q19(t), q0(t), q23(t), q20(t), q5(t), q13(t), q11(t), q7(t), q22(t), q2(t), q3(t), q14(t), q15(t), q10(t), q16(t), q6(t), q8(t), q24(t), q9(t), q21(t), q18(t), q12(t), q1(t), q17(t), q4(t)}
+MM free symbols {l, m, t, iZZ}
+MM contains 9,606 operations, 1,394 after cse
+
+force DS {q19(t), u18(t), q23(t), u14(t), u10(t), u13(t), u24(t), q3(t), u12(t), u19(t), u2(t), q16(t), q15(t), q10(t), q8(t), q6(t), u3(t), u16(t), u4(t), q9(t), u9(t), q18(t), u21(t), u1(t), u8(t), q17(t), q4(t), q0(t), q20(t), q5(t), u5(t), u23(t), q11(t), q22(t), q7(t), u20(t), q2(t), u11(t), q14(t), u0(t), u15(t), u7(t), u6(t), u17(t), q21(t), u22(t), q13(t), q12(t), q1(t), q24(t)}
+force free symbols {g, l, m, t, reibung}
+force contains 12,156 operations 2,721 after cse
+</pre></div>
+</div>
+<p>Functions for the kinetic and the potential energies.
+Always useful to detect mistakes.</p>
+<p>Using sm.lambdify(…)</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">plot_energies</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">symJIT</span><span class="p">:</span>
+    <span class="n">qL</span> <span class="o">=</span> <span class="n">q</span> <span class="o">+</span> <span class="n">u</span>
+    <span class="n">pL</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">iZZ</span><span class="p">,</span> <span class="n">reibung</span><span class="p">]</span>
+
+    <span class="n">kin_energie</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">koerper</span><span class="o">.</span><span class="n">kinetic_energy</span><span class="p">(</span><span class="n">O</span><span class="p">)</span> <span class="k">for</span> <span class="n">koerper</span> <span class="ow">in</span> <span class="n">BODY</span><span class="p">])</span>
+    <span class="n">pot_energie</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">m</span><span class="o">*</span><span class="n">g</span><span class="o">*</span><span class="n">me</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">koerper</span><span class="o">.</span><span class="n">pos_from</span><span class="p">(</span><span class="n">PO</span><span class="p">),</span> <span class="n">O</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">koerper</span> <span class="ow">in</span> <span class="n">Dmc</span><span class="p">])</span>
+    <span class="n">kin_lam</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">lambdify</span><span class="p">(</span><span class="n">qL</span> <span class="o">+</span> <span class="n">pL</span><span class="p">,</span> <span class="n">kin_energie</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">pot_lam</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">lambdify</span><span class="p">(</span><span class="n">qL</span> <span class="o">+</span> <span class="n">pL</span><span class="p">,</span> <span class="n">pot_energie</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>using symjit.compile_func(..)</p>
+<p>As symjit does not accept dynamicsymbols -which are needed with Kane’s
+method- they must be substituted with sympy symbols.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">plot_energies</span> <span class="ow">and</span> <span class="n">symJIT</span><span class="p">:</span>
+    <span class="n">w1</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;w:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">v1</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;v:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">dict_w</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">w1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)}</span>
+    <span class="n">dict_v</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">v1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)}</span>
+
+    <span class="n">kin_energie</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">msubs</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">koerper</span><span class="o">.</span><span class="n">kinetic_energy</span><span class="p">(</span><span class="n">O</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">koerper</span> <span class="ow">in</span> <span class="n">BODY</span><span class="p">]),</span> <span class="n">dict_w</span><span class="p">,</span> <span class="n">dict_v</span><span class="p">)</span>
+    <span class="n">pot_energie</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">msubs</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">m</span><span class="o">*</span><span class="n">g</span><span class="o">*</span><span class="n">me</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">koerper</span><span class="o">.</span><span class="n">pos_from</span><span class="p">(</span><span class="n">PO</span><span class="p">),</span> <span class="n">O</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+                                <span class="k">for</span> <span class="n">koerper</span> <span class="ow">in</span> <span class="n">Dmc</span><span class="p">]),</span> <span class="n">dict_w</span><span class="p">,</span> <span class="n">dict_v</span><span class="p">)</span>
+    <span class="n">kin_jit</span> <span class="o">=</span> <span class="n">compile_func</span><span class="p">((</span><span class="o">*</span><span class="n">w1</span><span class="p">,</span> <span class="o">*</span><span class="n">v1</span><span class="p">),</span> <span class="n">kin_energie</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">iZZ</span><span class="p">,</span>
+                                                            <span class="n">reibung</span><span class="p">))</span>
+    <span class="n">pot_jit</span> <span class="o">=</span> <span class="n">compile_func</span><span class="p">((</span><span class="o">*</span><span class="n">w1</span><span class="p">,</span> <span class="o">*</span><span class="n">v1</span><span class="p">),</span> <span class="n">pot_energie</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">iZZ</span><span class="p">,</span>
+                                                            <span class="n">reibung</span><span class="p">))</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Use symjit.</p>
+<p>As MM and force are sympy matrices, they must be converted into lists.
+As symjit does not accept dynamicsymbols -which are needed to form the
+equations of motion- they must be substituted with sympy symbols.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">symJIT</span><span class="p">:</span>
+    <span class="n">start3</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">w1</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;w:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">v1</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;v:</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">dict_w</span> <span class="o">=</span> <span class="p">{</span><span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">w1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)}</span>
+    <span class="n">dict_v</span> <span class="o">=</span> <span class="p">{</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">v1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)}</span>
+    <span class="n">MM1</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">msubs</span><span class="p">(</span><span class="n">MM</span><span class="p">,</span> <span class="n">dict_w</span><span class="p">,</span> <span class="n">dict_v</span><span class="p">)</span>
+    <span class="n">force1</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">msubs</span><span class="p">(</span><span class="n">force</span><span class="p">,</span> <span class="n">dict_w</span><span class="p">,</span> <span class="n">dict_v</span><span class="p">)</span>
+    <span class="n">MM1</span> <span class="o">=</span> <span class="p">[</span><span class="n">MM1</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MM1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MM1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+    <span class="n">force1</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">force1</span><span class="p">)</span>
+    <span class="n">pL1</span> <span class="o">=</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">iZZ</span><span class="p">,</span> <span class="n">reibung</span><span class="p">)</span>
+    <span class="n">MM_jit</span> <span class="o">=</span> <span class="n">compile_func</span><span class="p">((</span><span class="o">*</span><span class="n">w1</span><span class="p">,</span> <span class="o">*</span><span class="n">v1</span><span class="p">),</span> <span class="n">MM1</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">pL1</span><span class="p">)</span>
+    <span class="n">force_jit</span> <span class="o">=</span> <span class="n">compile_func</span><span class="p">((</span><span class="o">*</span><span class="n">w1</span><span class="p">,</span> <span class="o">*</span><span class="n">v1</span><span class="p">),</span> <span class="n">force1</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">pL1</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;it took </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start3</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> sec to do compile_func&#39;</span><span class="p">)</span>
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>it took 0.216 sec to do compile_func
+</pre></div>
+</div>
+<p>Use lambdify</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="ow">not</span> <span class="n">symJIT</span><span class="p">:</span>
+    <span class="n">start3</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">qL</span> <span class="o">=</span> <span class="n">q</span> <span class="o">+</span> <span class="n">u</span>
+    <span class="n">pL</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">iZZ</span><span class="p">,</span> <span class="n">reibung</span><span class="p">]</span>
+
+    <span class="n">MM_lam</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">lambdify</span><span class="p">(</span><span class="n">qL</span> <span class="o">+</span> <span class="n">pL</span><span class="p">,</span> <span class="n">MM</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">force_lam</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">lambdify</span><span class="p">(</span><span class="n">qL</span> <span class="o">+</span> <span class="n">pL</span><span class="p">,</span> <span class="n">force</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;it took </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">start3</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> sec to do the lambdification&#39;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+</section>
+<section id="numerical-integration">
+<h2>Numerical Integration<a class="headerlink" href="#numerical-integration" title="Link to this heading">¶</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="c1"># method=&#39;Radau&#39; in solve_ivp gives a more constant total energy if</span>
+<span class="c1"># $reibung = 0.$</span>
+
+<span class="c1"># Input variables</span>
+<span class="n">m1</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="n">g1</span> <span class="o">=</span> <span class="mf">9.8</span>
+<span class="n">l1</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">reibung1</span> <span class="o">=</span> <span class="mf">0.</span>
+
+<span class="n">q1</span> <span class="o">=</span> <span class="p">[</span><span class="mf">3.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="n">n</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span>
+<span class="n">u1</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+
+<span class="n">intervall</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="n">punkte</span> <span class="o">=</span> <span class="mi">50</span>
+
+<span class="n">schritte</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">intervall</span> <span class="o">*</span> <span class="n">punkte</span><span class="p">)</span>
+<span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">intervall</span><span class="p">,</span> <span class="n">schritte</span><span class="p">)</span>
+<span class="n">t_span</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">intervall</span><span class="p">)</span>
+
+<span class="n">iZZ1</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="mf">12.</span> <span class="o">*</span> <span class="n">m1</span> <span class="o">*</span> <span class="p">(</span><span class="n">l1</span><span class="o">/</span><span class="n">n</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>        <span class="c1"># from the internet</span>
+
+<span class="n">pL_vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">m1</span><span class="p">,</span> <span class="n">g1</span><span class="p">,</span> <span class="n">l1</span><span class="p">,</span> <span class="n">iZZ1</span><span class="p">,</span> <span class="n">reibung1</span><span class="p">]</span>
+<span class="n">y0</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">q1</span><span class="p">,</span> <span class="o">*</span><span class="n">u1</span><span class="p">]</span>
+
+<span class="k">if</span> <span class="n">symJIT</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">gradient</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">MM_lam</span><span class="p">(</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">),</span> <span class="n">force_lam</span><span class="p">(</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="k">else</span><span class="p">:</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">gradient</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+        <span class="c1"># The list must be reshaped to a matrix.</span>
+        <span class="n">MM_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">MM_jit</span><span class="p">(</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="o">*</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">force_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">force_jit</span><span class="p">(</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">))</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">MM_matrix</span><span class="p">,</span> <span class="n">force_vector</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span>
+
+<span class="n">start2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">resultat1</span> <span class="o">=</span> <span class="n">solve_ivp</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">times</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">pL_vals</span><span class="p">,),</span>
+                      <span class="n">method</span><span class="o">=</span><span class="s1">&#39;Radau&#39;</span><span class="p">)</span>
+<span class="n">end2</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+<span class="n">resultat</span> <span class="o">=</span> <span class="n">resultat1</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">T</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;resultat shape&#39;</span><span class="p">,</span> <span class="n">resultat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">resultat1</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">symJIT</span><span class="p">:</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;used symjit&#39;</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;used lambdify&#39;</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;To numerically integrate an intervall of </span><span class="si">{</span><span class="n">intervall</span><span class="si">}</span><span class="s2"> sec the &quot;</span>
+      <span class="sa">f</span><span class="s2">&quot;routine cycled </span><span class="si">{</span><span class="n">resultat1</span><span class="o">.</span><span class="n">nfev</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> times and it took &quot;</span>
+      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">end2</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start2</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> sec, </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2"> &quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>resultat shape (500, 50)
+The solver successfully reached the end of the integration interval.
+
+To numerically integrate an intervall of 10.0 sec the routine cycled 10,083 times and it took 3.426 sec, used symjit
+</pre></div>
+</div>
+</section>
+<section id="plot-the-energies">
+<h2>Plot the Energies<a class="headerlink" href="#plot-the-energies" title="Link to this heading">¶</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">plot_energies</span><span class="p">:</span>
+    <span class="n">kin_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">schritte</span><span class="p">)</span>
+    <span class="n">pot_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">schritte</span><span class="p">)</span>
+    <span class="n">total_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">schritte</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">schritte</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">symJIT</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">kin_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">kin_lam</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">resultat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+                                  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">resultat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span> <span class="o">*</span><span class="n">pL_vals</span><span class="p">)</span>
+            <span class="n">pot_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pot_lam</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">resultat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+                                  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">resultat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span> <span class="o">*</span><span class="n">pL_vals</span><span class="p">)</span>
+            <span class="n">total_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">kin_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">pot_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kin_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">kin_jit</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">resultat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+                                  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">resultat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span> <span class="o">*</span><span class="n">pL_vals</span><span class="p">)</span>
+            <span class="n">pot_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pot_jit</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">resultat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+                                  <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">resultat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])],</span> <span class="o">*</span><span class="n">pL_vals</span><span class="p">)</span>
+            <span class="n">total_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">kin_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">pot_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">reibung1</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
+        <span class="n">max_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">total_np</span><span class="p">))</span>
+        <span class="n">min_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">total_np</span><span class="p">))</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">max_total</span> <span class="o">-</span> <span class="n">min_total</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;max deviation of total energy from constant is &#39;</span>
+              <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">delta</span><span class="o">/</span><span class="n">max_total</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="si">:</span><span class="s1">.3e</span><span class="si">}</span><span class="s1"> % of max. total energy&#39;</span><span class="p">)</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">((</span><span class="n">kin_np</span><span class="p">,</span> <span class="n">pot_np</span><span class="p">,</span> <span class="n">total_np</span><span class="p">),</span>
+                    <span class="p">(</span><span class="s1">&#39;kinetic energy&#39;</span><span class="p">,</span> <span class="s1">&#39;potential energy&#39;</span><span class="p">,</span> <span class="s1">&#39;total energy&#39;</span><span class="p">)):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">j</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Energies of the system&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;time (sec)&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;energy (Nm)&#39;</span><span class="p">)</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_chain_symjit_001.png" srcset="../_images/sphx_glr_plot_chain_symjit_001.png" alt="Energies of the system" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>max deviation of total energy from constant is 3.108e-02 % of max. total energy
+</pre></div>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 23.507 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-plot-chain-symjit-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/1e468894da2e0daa8816a210addeddc3/plot_chain_symjit.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_chain_symjit.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/466852bd64bf1ece8ad15ced548209d4/plot_chain_symjit.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_chain_symjit.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/ec1faf1613ed6db87df9ca8e2a372956/plot_chain_symjit.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">plot_chain_symjit.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Peter's Mechanics Examples</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=pydy&repo=pst-notebooks&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">See the Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_148_opty.html">Zermelo’s Problem (betts-10-148)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_113_opty.html">Mixed State-Control Constraints (betts-10-113)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_90_opty.html">Nonconvex Delay (betts_10_90)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_141_opty.html">Tumor Antigionesis (betts_10_141)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_58_opty.html">Heat Equation (betts_10_58)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_43_opty.html">Free-Flying Robot (betts_10_43)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_1_opty.html">Stiff Set of DAEs (betts-10-1)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_57_opty.html">Heat Diffusion Process with Inequality (betts_10_57)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_6_opty.html">Underwater Vehicle (betts-10-6)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_133_opty.html">Two-Strain Tuberculosis Model (betts_10_133)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_144_145_opty.html">Van der Pol Oscillator  (Betts 10.144 / 145)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_144_145_opty.html#first-version-of-the-problem-10-144">First version of the problem (10.144)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_144_145_opty.html#second-version-of-the-problem-10-145">Second version of the problem (10.145)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_73_74_opty.html">Linear Tangent Steering (betts_10_73_74)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_73_74_opty.html#example-10-74">Example 10.74</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_73_74_opty.html#example-10-73">Example 10.73</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_identification_of_four_parameters_opty.html">Parameter Identification with Non-Contiguous Measurements.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_brachi_obstruction_opty.html">Brachistochrone with Obstruction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_estimate_time_delay.html">Time Delay Estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_block_on_disc_coulomb_friction.html">Block Sliding on a Spinning Disc</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Example Using symjit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_particle_different_eoms.html">Particle in Changing Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_balancing_wheel.html">Automatic Balancing of a Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_T_handle.html">Rotating T-handle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_particle_gates_h_opty.html">Particle Through Gates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_car_hits_points.html">Car hits Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_particle_on_numerical_surface.html">Particle on Numerical Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_two_body_skateboard.html">Two Body Skateboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_synchronisation.html">Synchronisation of Clocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_sailboat_around_buoy.html">Sailboat Around Buoy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_wood_pecker.html">Wood Pecker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_chain_link_closed.html">Closed Chain</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_d_levinson_lecture_6.html">Spacecraft with Nutation Damper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_car_on_racecourse_delay_opty.html">Battery driven car on a Race Course</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_disc_on_uneven_street.html">Disc on Very Uneven Street, No Jumping Allowed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_3d_drone_propeller.html">3D Drone with Propellers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_spoked_wheel.html">Spoked, Rimless Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ball_bouncing_between_two_horizontal_planes.html">Ball bouncing between two planes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_explorer_anomaly.html">Explorer Anomaly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ellipse_bouncing_on_street_HC_theory.html">Bouncing Ellipse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_hc_colliding_discs_friction_circle.html">Colliding Discs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_hc_rolling_balls_uneven_street.html">Two Balls Rolling on an Uneven Street</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_hc_colliding_ellipses_circle.html">Colliding Ellipses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_two_ellipses_bouncing.html">Two Ellipses Bouncing on a Wavy Street</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">See the Examples</a><ul>
+      <li>Previous: <a href="plot_block_on_disc_coulomb_friction.html" title="previous chapter">Block Sliding on a Spinning Disc</a></li>
+      <li>Next: <a href="plot_particle_different_eoms.html" title="next chapter">Particle in Changing Environment</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Peter Stahlecker.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/examples/plot_chain_symjit.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

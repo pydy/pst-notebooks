@@ -1,0 +1,817 @@
+:orphan:
+
+See the Examples
+================
+
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This is example 10.148 from John T. Betts, Practical Methods for Optimal Control Using NonlinearProgramming, 3rd edition, Chapter 10: Test Problems. The goal is to minimize the final time t_f to reach the point (0 / 0), having started at the point (3.5 / -1.8).">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_148_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_148_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Zermelo's Problem (betts-10-148)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This is example 10.113 from John T. Betts, Practical Methods for Optimal Control  Using NonlinearProgramming, 3rd edition, Chapter 10: Test Problems.">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_113_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_113_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Mixed State-Control Constraints (betts-10-113)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This is example 10.90 from John T. Betts, Practical Methods for Optimal Control Using NonlinearProgramming, 3rd edition, Chapter 10: Test Problems.">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_90_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_90_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Nonconvex Delay (betts_10_90)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This is example 10.141 from John T. Betts, Practical Methods for Optimal Control Using NonlinearProgramming, 3rd edition, Chapter 10: Test Problems. It is described in more detail in section 8.17 of the book.">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_141_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_141_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Tumor Antigionesis (betts_10_141)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This is example 10.58 from John T. Betts, Practical Methods for Optimal Control Using Nonlinear Programming, 3rd edition, chapter 10: Test Problems. It deals with the &#x27;discretization&#x27; of a PDE.">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_58_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_58_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Heat Equation (betts_10_58)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This is example 10.43 from Betts, Practical Methods for Optimal Control Using NonlinearProgramming, 3rd edition, Chapter 10: Test Problems.">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_43_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_43_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Free-Flying Robot (betts_10_43)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This is example 10.1 from John T. Betts Practical Methods for Optimal Control Using NonlinearProgramming, 3rd edition, Chapter 10: Test Problems. More details are in section 4.11.7 of the book, where it says it was designed specifically to be hard to solve.">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_1_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_1_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Stiff Set of DAEs (betts-10-1)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This is example 10.57 from John T. Betts, Practical Methods for Optimal Control Using Nonlinear Programming, 3rd edition, chapter 10: Test Problems. It deals with the &#x27;discretization&#x27; of a PDE.">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_57_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_57_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Heat Diffusion Process with Inequality (betts_10_57)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This is example 10.6 from Betts&#x27; book &quot;Practical Methods for Optimal Control Using NonlinearProgramming&quot;, 3rd edition, Chapter 10: Test Problems.">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_6_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_6_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Underwater Vehicle (betts-10-6)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This is example 10.133 from John T.Betts, Practical Methods for Optimal Control Using NonlinearProgramming, 3rd edition, Chapter 10: Test Problems.">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_133_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_133_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Two-Strain Tuberculosis Model (betts_10_133)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="https://en.wikipedia.org/wiki/Van_der_Pol_oscillator">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_144_145_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_144_145_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Van der Pol Oscillator  (Betts 10.144 / 145)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="These are examples 10.73 and 10.74 from John T. Betts, Practical Methods for Optimal Control Using NonlinearProgramming, 3rd edition, Chapter 10: Test Problems. They describe the same problem, but are formulated differently. More details in section 5.6. of the book.">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_betts_10_73_74_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_betts_10_73_74_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Linear Tangent Steering (betts_10_73_74)</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_identification_of_four_parameters_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_identification_of_four_parameters_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Parameter Identification with Non-Contiguous Measurements.</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_brachi_obstruction_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_brachi_obstruction_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Brachistochrone with Obstruction</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_estimate_time_delay_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_estimate_time_delay.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Time Delay Estimation</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_block_on_disc_coulomb_friction_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_block_on_disc_coulomb_friction.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Block Sliding on a Spinning Disc</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_chain_symjit_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_chain_symjit.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Example Using symjit</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_particle_different_eoms_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_particle_different_eoms.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Particle in Changing Environment</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_balancing_wheel_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_balancing_wheel.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Automatic Balancing of a Wheel</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_T_handle_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_T_handle.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Rotating T-handle</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_particle_gates_h_opty_thumb.gif
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_particle_gates_h_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Particle Through Gates</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_car_hits_points_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_car_hits_points.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Car hits Points</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_particle_on_numerical_surface_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_particle_on_numerical_surface.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Particle on Numerical Surface</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_two_body_skateboard_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_two_body_skateboard.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Two Body Skateboard</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_synchronisation_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_synchronisation.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Synchronisation of Clocks</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective: ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_sailboat_around_buoy_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_sailboat_around_buoy.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Sailboat Around Buoy</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_wood_pecker_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_wood_pecker.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Wood Pecker</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Description -----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_ellipse_on_uneven_street_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_ellipse_on_uneven_street.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Ellipse Rolling on Uneven Street</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_chain_link_closed_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_chain_link_closed.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Closed Chain</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_ellipsoid_rolling_on_uneven_surface_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_ellipsoid_rolling_on_uneven_surface.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Ellipsoid rolling on an uneven surface</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_d_levinson_lecture_6_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_d_levinson_lecture_6.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Spacecraft with Nutation Damper</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_disc_on_uneven_street_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_disc_on_uneven_street.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Disc on Very Uneven Street, No Jumping Allowed</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ---------- - Show how to handle a constraint of the form   \int_{t - \Delta}^{t} \max{(0, P(s))} ds \leq W_{max}, using   numerical known trajectories. - unknown input trajectories can vary discontinuously. If, for whatever   physical reason, this is not desirable, a way is shown how to make it   smooth.">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_car_on_racecourse_delay_opty_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_car_on_racecourse_delay_opty.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Battery driven car on a Race Course</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_3d_drone_propeller_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_3d_drone_propeller.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">3D Drone with Propellers</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_ellipse_on_very_uneven_street_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_ellipse_on_very_uneven_street.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Ellipse Rolling on Very Uneven Street</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_spoked_wheel_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_spoked_wheel.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Spoked, Rimless Wheel</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_ball_bouncing_between_two_horizontal_planes_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_ball_bouncing_between_two_horizontal_planes.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Ball bouncing between two planes</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_explorer_anomaly_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_explorer_anomaly.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Explorer Anomaly</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objective ---------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_ellipse_bouncing_on_street_HC_theory_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_ellipse_bouncing_on_street_HC_theory.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Bouncing Ellipse</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_hc_colliding_discs_friction_circle_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_hc_colliding_discs_friction_circle.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Colliding Discs</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_hc_rolling_balls_uneven_street_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_hc_rolling_balls_uneven_street.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Two Balls Rolling on an Uneven Street</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_hc_colliding_ellipses_circle_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_hc_colliding_ellipses_circle.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Colliding Ellipses</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Objectives ----------">
+
+.. only:: html
+
+  .. image:: /examples/images/thumb/sphx_glr_plot_two_ellipses_bouncing_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_examples_plot_two_ellipses_bouncing.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Two Ellipses Bouncing on a Wavy Street</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /examples/plot_betts_10_148_opty
+   /examples/plot_betts_10_113_opty
+   /examples/plot_betts_10_90_opty
+   /examples/plot_betts_10_141_opty
+   /examples/plot_betts_10_58_opty
+   /examples/plot_betts_10_43_opty
+   /examples/plot_betts_10_1_opty
+   /examples/plot_betts_10_57_opty
+   /examples/plot_betts_10_6_opty
+   /examples/plot_betts_10_133_opty
+   /examples/plot_betts_10_144_145_opty
+   /examples/plot_betts_10_73_74_opty
+   /examples/plot_identification_of_four_parameters_opty
+   /examples/plot_brachi_obstruction_opty
+   /examples/plot_estimate_time_delay
+   /examples/plot_block_on_disc_coulomb_friction
+   /examples/plot_chain_symjit
+   /examples/plot_particle_different_eoms
+   /examples/plot_balancing_wheel
+   /examples/plot_T_handle
+   /examples/plot_particle_gates_h_opty
+   /examples/plot_car_hits_points
+   /examples/plot_particle_on_numerical_surface
+   /examples/plot_two_body_skateboard
+   /examples/plot_synchronisation
+   /examples/plot_sailboat_around_buoy
+   /examples/plot_wood_pecker
+   /examples/plot_ellipse_on_uneven_street
+   /examples/plot_chain_link_closed
+   /examples/plot_ellipsoid_rolling_on_uneven_surface
+   /examples/plot_d_levinson_lecture_6
+   /examples/plot_disc_on_uneven_street
+   /examples/plot_car_on_racecourse_delay_opty
+   /examples/plot_3d_drone_propeller
+   /examples/plot_ellipse_on_very_uneven_street
+   /examples/plot_spoked_wheel
+   /examples/plot_ball_bouncing_between_two_horizontal_planes
+   /examples/plot_explorer_anomaly
+   /examples/plot_ellipse_bouncing_on_street_HC_theory
+   /examples/plot_hc_colliding_discs_friction_circle
+   /examples/plot_hc_rolling_balls_uneven_street
+   /examples/plot_hc_colliding_ellipses_circle
+   /examples/plot_two_ellipses_bouncing
+
+
+.. only:: html
+
+  .. container:: sphx-glr-footer sphx-glr-footer-gallery
+
+    .. container:: sphx-glr-download sphx-glr-download-python
+
+      :download:`Download all examples in Python source code: examples_python.zip </examples/examples_python.zip>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download all examples in Jupyter notebooks: examples_jupyter.zip </examples/examples_jupyter.zip>`
+
+
+.. only:: html
+
+ .. rst-class:: sphx-glr-signature
+
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_

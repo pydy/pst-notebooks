@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Time Delay Estimation &#8212; Peter&#39;s Mechanics Examples  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=9899ed2f" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=d2d258e8" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Block Sliding on a Spinning Disc" href="plot_block_on_disc_coulomb_friction.html" />
+    <link rel="prev" title="Brachistochrone with Obstruction" href="plot_brachi_obstruction_opty.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-examples-plot-estimate-time-delay-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code.</p>
+</div>
+<section class="sphx-glr-example-title" id="time-delay-estimation">
+<span id="sphx-glr-examples-plot-estimate-time-delay-py"></span><h1>Time Delay Estimation<a class="headerlink" href="#time-delay-estimation" title="Link to this heading">¶</a></h1>
+<section id="objectives">
+<h2>Objectives<a class="headerlink" href="#objectives" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Show how a time delay in a driving force of a mechanical system may be
+estimated from noisy measurements by introducing a state variable which
+mimicks the time.</p></li>
+<li><p>Show how to handle the explicit appearance of the time <code class="docutils literal notranslate"><span class="pre">t</span></code> in the
+equations of motion.</p></li>
+<li><p>Show how to handle non-contiguous measurements.</p></li>
+</ul>
+</section>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>A simple pendulum is driven by a torque of the form:
+<span class="math notranslate nohighlight">\(F \cdot t \cdot \sin(\omega (t - \delta))\)</span>, and <span class="math notranslate nohighlight">\(F, \omega,
+\delta\)</span>
+are to be erstimated based on noisy measurements of the angle.</p>
+<p>Presently, opty cannot handle expressions like <span class="math notranslate nohighlight">\(\sin(\omega \cdot
+(t - \delta))\)</span> in the equations of motion.
+To overcome this, a state variable T(t) is introduced,
+<span class="math notranslate nohighlight">\(\dfrac{dT}{dt} = 1\)</span> is added to the equations of motion, and
+<span class="math notranslate nohighlight">\(T(t_0) = t_0\)</span> is added as a constraint. This way, T(t) and t have the
+same values. opty can handle <span class="math notranslate nohighlight">\(\sin(T(t) - \delta)\)</span> in the equations
+of motion without any problems.</p>
+<p>Presently, opty cannot handle the <strong>explicit</strong> appearance of the time <code class="docutils literal notranslate"><span class="pre">t</span></code> in
+the equations of motion. To overcome this, the time <code class="docutils literal notranslate"><span class="pre">t</span></code> is replaced by the
+<code class="docutils literal notranslate"><span class="pre">T(t)</span></code> state variable described above.</p>
+<p>The driving force is set to zero for <span class="math notranslate nohighlight">\(t &lt; \delta\)</span>.</p>
+<p>The idea of using non-contiguous measurements was taken from this simulation:</p>
+<p><a class="reference external" href="https://github.com/csu-hmc/opty/blob/master/examples-gallery/intermediate/plot_non_contiguous_parameter_identification.py">https://github.com/csu-hmc/opty/blob/master/examples-gallery/intermediate/plot_non_contiguous_parameter_identification.py</a></p>
+<p>Also the detailed explanation may be found there</p>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>It is helpful to give reasonable bounds for the parameters to be estimated.
+Otherwise opty may converge to another local minimum.</p></li>
+<li><p>If the initial speeds <span class="math notranslate nohighlight">\(u_i \neq 0\)</span>, it seems difficult to get good
+estimates.</p></li>
+</ul>
+<p><strong>States</strong></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(q_0, ...q_{no_{\textrm{test}}-1}\)</span> : angle of the pendulums [rad]</p></li>
+<li><p><span class="math notranslate nohighlight">\(u_0, ...u_{no_{\textrm{test}}-1}\)</span> : angular velocity of the
+pendulums [rad/s]</p></li>
+<li><p><span class="math notranslate nohighlight">\(T(t)\)</span> : variable which mimicks the time t [s]</p></li>
+</ul>
+<p><strong>Known parameters</strong></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(m\)</span> : mass of the pendulum [kg]</p></li>
+<li><p><span class="math notranslate nohighlight">\(g\)</span> : gravity [m/s^2]</p></li>
+<li><p><span class="math notranslate nohighlight">\(l\)</span> : length of the pendulum [m]</p></li>
+<li><p><span class="math notranslate nohighlight">\(I_{zz}\)</span> : inertia of the pendulum [kg*m^2]</p></li>
+<li><p><span class="math notranslate nohighlight">\(steep\)</span> : steepness of the differentiable step function [1/s]</p></li>
+<li><p><span class="math notranslate nohighlight">\(no_{\textrm{test}}\)</span> : Number of tests performed</p></li>
+<li><p><span class="math notranslate nohighlight">\(\textrm{schritte}\)</span> : Number of measurements of the angle per test</p></li>
+</ul>
+<p><strong>Unknown parameters</strong></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(F\)</span> : strength of the driving torque [Nm]</p></li>
+<li><p><span class="math notranslate nohighlight">\(\omega\)</span> : frequency of the driving torque [rad/s]</p></li>
+<li><p><span class="math notranslate nohighlight">\(\delta\)</span> : time delay of the driving torque [s]</p></li>
+</ul>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sympy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve_ivp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sympy.physics.mechanics</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">me</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">opty</span><span class="w"> </span><span class="kn">import</span> <span class="n">Problem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">opty.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">MathJaxRepr</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+</pre></div>
+</div>
+</section>
+<section id="set-up-the-system">
+<h2>Set Up the System<a class="headerlink" href="#set-up-the-system" title="Link to this heading">¶</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">no_test</span> <span class="o">=</span> <span class="mi">15</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">me</span><span class="o">.</span><span class="n">ReferenceFrame</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;A:</span><span class="si">{</span><span class="n">no_test</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">me</span><span class="o">.</span><span class="n">ReferenceFrame</span><span class="p">)</span>
+
+<span class="n">O</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">me</span><span class="o">.</span><span class="n">Point</span><span class="p">)</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;P:</span><span class="si">{</span><span class="n">no_test</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">me</span><span class="o">.</span><span class="n">Point</span><span class="p">)</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">dynamicsymbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;q:</span><span class="si">{</span><span class="n">no_test</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">dynamicsymbols</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;u:</span><span class="si">{</span><span class="n">no_test</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">O</span><span class="o">.</span><span class="n">set_vel</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">dynamicsymbols</span><span class="o">.</span><span class="n">_t</span>
+
+<span class="n">m</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">iZZ</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;m g l iZZ&#39;</span><span class="p">,</span> <span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">F</span><span class="p">,</span> <span class="n">omega</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s1">&#39;F, omega, delta&#39;</span><span class="p">,</span> <span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">bodies</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">forces</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">torques</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">kd</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_test</span><span class="p">):</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_ang_vel</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_vel</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">orient_axis</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">N</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+    <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_ang_vel</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+
+    <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_pos</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="o">-</span><span class="n">l</span><span class="o">*</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">v2pt_theory</span><span class="p">(</span><span class="n">O</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+    <span class="n">inert</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">inertia</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">iZZ</span><span class="p">)</span>
+    <span class="n">bodies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">me</span><span class="o">.</span><span class="n">RigidBody</span><span class="p">(</span><span class="s1">&#39;body&#39;</span><span class="p">,</span> <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">m</span><span class="p">,</span> <span class="p">(</span><span class="n">inert</span><span class="p">,</span> <span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span>
+    <span class="c1"># Driving force set to zero for t &lt; delta</span>
+    <span class="n">torque</span> <span class="o">=</span> <span class="n">F</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">sm</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">delta</span><span class="p">))</span> <span class="o">*</span> <span class="n">sm</span><span class="o">.</span><span class="n">Heaviside</span><span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">delta</span><span class="p">)</span>
+    <span class="n">forces</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">-</span><span class="n">m</span><span class="o">*</span><span class="n">g</span><span class="o">*</span><span class="n">N</span><span class="o">.</span><span class="n">y</span><span class="p">))</span>
+    <span class="n">torques</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">torque</span><span class="o">*</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">z</span><span class="p">))</span>
+    <span class="n">kd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">q</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+<span class="n">kd</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">Matrix</span><span class="p">(</span><span class="n">kd</span><span class="p">)</span>
+<span class="n">KM</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">KanesMethod</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">q_ind</span><span class="o">=</span><span class="n">q</span><span class="p">,</span> <span class="n">u_ind</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">kd_eqs</span><span class="o">=</span><span class="n">kd</span><span class="p">)</span>
+<span class="n">fr</span><span class="p">,</span> <span class="n">frstar</span> <span class="o">=</span> <span class="n">KM</span><span class="o">.</span><span class="n">kanes_equations</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">forces</span> <span class="o">+</span> <span class="n">torques</span><span class="p">)</span>
+
+<span class="n">MM</span> <span class="o">=</span> <span class="n">KM</span><span class="o">.</span><span class="n">mass_matrix_full</span>
+<span class="n">force</span> <span class="o">=</span> <span class="n">KM</span><span class="o">.</span><span class="n">forcing_full</span>
+<span class="n">MathJaxRepr</span><span class="p">(</span><span class="n">force</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="output_subarea output_html rendered_html output_result">
+$$\left[\begin{matrix}u_{0}\\u_{1}\\u_{2}\\u_{3}\\u_{4}\\u_{5}\\u_{6}\\u_{7}\\u_{8}\\u_{9}\\u_{10}\\u_{11}\\u_{12}\\u_{13}\\u_{14}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{0} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{1} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{2} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{3} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{4} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{5} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{6} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{7} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{8} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{9} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{10} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{11} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{12} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{13} \right)}\\F t \sin{\left(\omega \left(- \delta + t\right) \right)} \theta\left(- \delta + t\right) - g l m \sin{\left(q_{14} \right)}\end{matrix}\right]$$
+</div>
+<br />
+<br /><p>Convert sympy functions to numpy functions.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">qL</span> <span class="o">=</span> <span class="n">q</span> <span class="o">+</span> <span class="n">u</span>
+<span class="n">pL</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="n">iZZ</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">omega</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span>
+
+<span class="n">MM_lam</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">lambdify</span><span class="p">(</span><span class="n">qL</span> <span class="o">+</span> <span class="n">pL</span><span class="p">,</span> <span class="n">MM</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">force_lam</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">lambdify</span><span class="p">(</span><span class="n">qL</span> <span class="o">+</span> <span class="n">pL</span><span class="p">,</span> <span class="n">force</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">torque_lam</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">lambdify</span><span class="p">(</span><span class="n">qL</span> <span class="o">+</span> <span class="n">pL</span><span class="p">,</span> <span class="n">torque</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Integrate numerically to get the measurements.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">m1</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">g1</span> <span class="o">=</span> <span class="mf">9.81</span>
+<span class="n">l1</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">iZZ1</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">F1</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="n">omega1</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="n">delta1</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+<span class="n">t1</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>  <span class="c1"># For reproducibility</span>
+<span class="n">q10</span> <span class="o">=</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">no_test</span><span class="p">)</span>
+<span class="n">u10</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">no_test</span><span class="p">)</span>
+
+<span class="n">interval</span> <span class="o">=</span> <span class="mf">5.0</span>
+<span class="n">schritte</span> <span class="o">=</span> <span class="mi">200</span> <span class="o">*</span> <span class="n">no_test</span>
+
+<span class="n">pL_vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">m1</span><span class="p">,</span> <span class="n">g1</span><span class="p">,</span> <span class="n">l1</span><span class="p">,</span> <span class="n">iZZ1</span><span class="p">,</span> <span class="n">F1</span><span class="p">,</span> <span class="n">omega1</span><span class="p">,</span> <span class="n">delta1</span><span class="p">,</span> <span class="n">t1</span><span class="p">]</span>
+<span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">q10</span><span class="p">,</span> <span class="n">u10</span><span class="p">))</span>
+
+<span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">schritte</span><span class="p">)</span>
+<span class="n">t_span</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">gradient</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+    <span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">y</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+    <span class="n">sol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">MM_lam</span><span class="p">(</span><span class="o">*</span><span class="n">vals</span><span class="p">),</span> <span class="n">force_lam</span><span class="p">(</span><span class="o">*</span><span class="n">vals</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sol</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<span class="n">resultat1</span> <span class="o">=</span> <span class="n">solve_ivp</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">t_span</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t_eval</span><span class="o">=</span><span class="n">times</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">pL_vals</span><span class="p">,))</span>
+<span class="n">resultat</span> <span class="o">=</span> <span class="n">resultat1</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">T</span>
+
+<span class="n">measurement</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">),</span> <span class="n">no_test</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_test</span><span class="p">):</span>
+    <span class="n">seed</span> <span class="o">=</span> <span class="mi">123</span> <span class="o">+</span> <span class="n">i</span>  <span class="c1"># Different seed for each test</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">measurement</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultat</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
+                                                          <span class="n">resultat</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;resultat shape&#39;</span><span class="p">,</span> <span class="n">resultat</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_test</span><span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">measurement</span><span class="p">[:,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;q</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">resultat</span><span class="p">[:,</span> <span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;q</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;time [s]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;angle [rad]&#39;</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Measurements and true trajectories&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_estimate_time_delay_001.png" srcset="../_images/sphx_glr_plot_estimate_time_delay_001.png" alt="Measurements and true trajectories" class = "sphx-glr-single-img"/><div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>resultat shape (3000, 30)
+</pre></div>
+</div>
+<p>Adapt the eoms for opty.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">steep</span> <span class="o">=</span> <span class="mf">50.0</span>
+<span class="n">T</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">dynamicsymbols</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">step_diff</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">steep</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A differentiable approximation of the Heaviside function.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">sm</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">steep</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">a</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Replace the nondifferentiable Heaviside function with a differentiable
+approximation.
+Add the eom, suitable to make T(t) mimick the time t.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">T</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)(</span><span class="n">t</span><span class="p">)</span>
+
+<span class="n">torques</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_test</span><span class="p">):</span>
+    <span class="n">torque</span> <span class="o">=</span> <span class="n">F</span> <span class="o">*</span> <span class="n">T</span> <span class="o">*</span> <span class="n">sm</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="p">(</span><span class="n">T</span> <span class="o">-</span> <span class="n">delta</span><span class="p">))</span> <span class="o">*</span> <span class="n">step_diff</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span>
+                                                           <span class="n">steep</span><span class="p">)</span>
+    <span class="n">torques</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">torque</span> <span class="o">*</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">z</span><span class="p">))</span>
+
+<span class="n">KM</span> <span class="o">=</span> <span class="n">me</span><span class="o">.</span><span class="n">KanesMethod</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">q_ind</span><span class="o">=</span><span class="n">q</span><span class="p">,</span> <span class="n">u_ind</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">kd_eqs</span><span class="o">=</span><span class="n">kd</span><span class="p">)</span>
+<span class="n">fr</span><span class="p">,</span> <span class="n">frstar</span> <span class="o">=</span> <span class="n">KM</span><span class="o">.</span><span class="n">kanes_equations</span><span class="p">(</span><span class="n">bodies</span><span class="p">,</span> <span class="n">forces</span> <span class="o">+</span> <span class="n">torques</span><span class="p">)</span>
+<span class="n">eom</span> <span class="o">=</span> <span class="n">kd</span><span class="o">.</span><span class="n">col_join</span><span class="p">(</span><span class="n">fr</span> <span class="o">+</span> <span class="n">frstar</span><span class="p">)</span>
+<span class="n">eom</span> <span class="o">=</span> <span class="n">eom</span><span class="o">.</span><span class="n">col_join</span><span class="p">(</span><span class="n">sm</span><span class="o">.</span><span class="n">Matrix</span><span class="p">([</span><span class="n">T</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">]))</span>
+<span class="n">MathJaxRepr</span><span class="p">(</span><span class="n">eom</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="output_subarea output_html rendered_html output_result">
+$$\left[\begin{matrix}- u_{0} + \dot{q}_{0}\\- u_{1} + \dot{q}_{1}\\- u_{2} + \dot{q}_{2}\\- u_{3} + \dot{q}_{3}\\- u_{4} + \dot{q}_{4}\\- u_{5} + \dot{q}_{5}\\- u_{6} + \dot{q}_{6}\\- u_{7} + \dot{q}_{7}\\- u_{8} + \dot{q}_{8}\\- u_{9} + \dot{q}_{9}\\- u_{10} + \dot{q}_{10}\\- u_{11} + \dot{q}_{11}\\- u_{12} + \dot{q}_{12}\\- u_{13} + \dot{q}_{13}\\- u_{14} + \dot{q}_{14}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{0} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{0}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{1} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{1}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{2} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{2}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{3} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{3}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{4} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{4}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{5} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{5}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{6} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{6}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{7} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{7}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{8} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{8}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{9} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{9}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{10} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{10}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{11} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{11}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{12} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{12}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{13} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{13}\\F \left(0.5 - 0.5 \tanh{\left(50.0 \delta - 50.0 T \right)}\right) T \sin{\left(\omega \left(- \delta + T\right) \right)} - g l m \sin{\left(q_{14} \right)} - \left(iZZ + l^{2} m\right) \dot{u}_{14}\\\dot{T} - 1.0\end{matrix}\right]$$
+</div>
+<br />
+<br /></section>
+<section id="set-up-the-estimation-problem-for-opty">
+<h2>Set Up the Estimation Problem for opty<a class="headerlink" href="#set-up-the-estimation-problem-for-opty" title="Link to this heading">¶</a></h2>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">state_symbols</span> <span class="o">=</span> <span class="n">q</span> <span class="o">+</span> <span class="n">u</span> <span class="o">+</span> <span class="p">[</span><span class="n">T</span><span class="p">]</span>
+
+<span class="n">num_nodes</span> <span class="o">=</span> <span class="n">schritte</span>
+<span class="n">t0</span><span class="p">,</span> <span class="n">tf</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">interval</span>
+<span class="n">interval_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span> <span class="o">-</span> <span class="n">t0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">num_nodes</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">par_map</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">par_map</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="o">=</span> <span class="n">m1</span>
+<span class="n">par_map</span><span class="p">[</span><span class="n">g</span><span class="p">]</span> <span class="o">=</span> <span class="n">g1</span>
+<span class="n">par_map</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="n">l1</span>
+<span class="n">par_map</span><span class="p">[</span><span class="n">iZZ</span><span class="p">]</span> <span class="o">=</span> <span class="n">iZZ1</span>
+</pre></div>
+</div>
+<p>If some measurement is more reliable than others its relative weight may be
+increased by setting the corresponding weight to a value larger than 1.0.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">w</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_test</span><span class="p">)]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">obj</span><span class="p">(</span><span class="n">free</span><span class="p">):</span>
+    <span class="n">summe</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_test</span><span class="p">):</span>
+        <span class="n">summe</span> <span class="o">+=</span> <span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">interval_value</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">measurement</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">-</span>
+                                                 <span class="n">free</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">num_nodes</span><span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span>
+                                                      <span class="n">num_nodes</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">summe</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">obj_grad</span><span class="p">(</span><span class="n">free</span><span class="p">):</span>
+    <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">free</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_test</span><span class="p">):</span>
+        <span class="n">grad</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">num_nodes</span><span class="p">:</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_nodes</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span>
+                                                    <span class="n">interval_value</span> <span class="o">*</span>
+                                                    <span class="p">(</span><span class="n">measurement</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">-</span>
+                                                     <span class="n">free</span><span class="p">[</span><span class="n">i</span> <span class="o">*</span> <span class="n">num_nodes</span><span class="p">:</span>
+                                                         <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_nodes</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">grad</span>
+
+
+<span class="n">instance_constraints</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">T</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">t0</span><span class="p">)</span> <span class="o">-</span> <span class="n">t0</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Give rough bounds for the parameters to be erstimated. This speeds up the
+convergence.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">bounds</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">delta</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span>
+    <span class="n">omega</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">),</span>
+    <span class="n">F</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+<span class="p">}</span>
+
+<span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span>
+    <span class="n">obj</span><span class="p">,</span>
+    <span class="n">obj_grad</span><span class="p">,</span>
+    <span class="n">eom</span><span class="p">,</span>
+    <span class="n">state_symbols</span><span class="p">,</span>
+    <span class="n">num_nodes</span><span class="p">,</span>
+    <span class="n">interval_value</span><span class="p">,</span>
+    <span class="n">known_parameter_map</span><span class="o">=</span><span class="n">par_map</span><span class="p">,</span>
+    <span class="n">instance_constraints</span><span class="o">=</span><span class="n">instance_constraints</span><span class="p">,</span>
+    <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">,</span>
+    <span class="n">time_symbol</span><span class="o">=</span><span class="n">t</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Sequence of unknown parameters in solution, to be estimated:&#39;</span><span class="p">,</span>
+      <span class="n">prob</span><span class="o">.</span><span class="n">collocator</span><span class="o">.</span><span class="n">unknown_parameters</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>Sequence of unknown parameters in solution, to be estimated: (F, delta, omega)
+</pre></div>
+</div>
+<p>As the measurements for the angles are known, it makes sense to use them as
+initial guess for the angles.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">initial_guess</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span>
+    <span class="n">measurement</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>  <span class="c1"># initial guess for q</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">no_test</span> <span class="o">*</span> <span class="n">num_nodes</span><span class="p">),</span>  <span class="c1"># initial guess for u</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="n">tf</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">),</span>  <span class="c1"># initial guess for T</span>
+    <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">],</span>  <span class="c1"># initial guess for F, omega, delta</span>
+<span class="p">))</span>
+</pre></div>
+</div>
+<p>Solve the problem.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">solution</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">initial_guess</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;status_msg&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>b&#39;Algorithm terminated successfully at a locally optimal point, satisfying the convergence tolerances (can be specified by options).&#39;
+</pre></div>
+</div>
+<p>Plot the constraint violations.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">plot_constraint_violations</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_estimate_time_delay_002.png" srcset="../_images/sphx_glr_plot_estimate_time_delay_002.png" alt="Constraint violations" class = "sphx-glr-single-img"/><p>Plot the objective value as a function the the iterations.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">plot_objective_value</span><span class="p">()</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_estimate_time_delay_003.png" srcset="../_images/sphx_glr_plot_estimate_time_delay_003.png" alt="Objective Value" class = "sphx-glr-single-img"/><p>Print the results.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">((</span><span class="sa">f</span><span class="s1">&#39;estimated </span><span class="se">\u03B4</span><span class="s1"> = </span><span class="si">{</span><span class="n">solution</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">, given value = </span><span class="si">{</span><span class="n">delta1</span><span class="si">}</span><span class="s1">, &#39;</span>
+       <span class="sa">f</span><span class="s1">&#39;hence error = </span><span class="si">{</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">delta1</span><span class="p">)</span><span class="o">/</span><span class="n">delta1</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> %&#39;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">((</span><span class="sa">f</span><span class="s1">&#39;estimated </span><span class="se">\u03C9</span><span class="s1"> = </span><span class="si">{</span><span class="n">solution</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">, given value = </span><span class="si">{</span><span class="n">omega1</span><span class="si">}</span><span class="s1">,&#39;</span>
+       <span class="sa">f</span><span class="s1">&#39; hence error = </span><span class="si">{</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">omega1</span><span class="p">)</span><span class="o">/</span><span class="n">omega1</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> %&#39;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">((</span><span class="sa">f</span><span class="s1">&#39;estimated F = </span><span class="si">{</span><span class="n">solution</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">, given value = </span><span class="si">{</span><span class="n">F1</span><span class="si">}</span><span class="s1">,&#39;</span>
+       <span class="sa">f</span><span class="s1">&#39; hence error = </span><span class="si">{</span><span class="p">(</span><span class="n">solution</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">F1</span><span class="p">)</span><span class="o">/</span><span class="n">F1</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> %&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>estimated δ = 0.956, given value = 1.0, hence error = -4.367 %
+estimated ω = 1.980, given value = 2.0, hence error = -0.991 %
+estimated F = 0.243, given value = 0.25, hence error = -2.947 %
+</pre></div>
+</div>
+<p>sphinx_gallery_thumbnail_number = 4</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no_test</span><span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">measurement</span><span class="p">[:,</span> <span class="n">i</span><span class="p">])</span>
+<span class="c1">#    ax.plot(times, resultat[:, i], label=f&#39;q{i+1}&#39;)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">solution</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">schritte</span><span class="p">:(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">schritte</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;time [s]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;angle [rad]&#39;</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Measurements and estimated trajectories in black&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_estimate_time_delay_004.png" srcset="../_images/sphx_glr_plot_estimate_time_delay_004.png" alt="Measurements and estimated trajectories in black" class = "sphx-glr-single-img"/><p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 40.719 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-examples-plot-estimate-time-delay-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/39f0e81682619e23d331baa321ddd5be/plot_estimate_time_delay.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_estimate_time_delay.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/94c0f347b0a7399f7d7d753e1ef809e2/plot_estimate_time_delay.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_estimate_time_delay.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/427b426a3ecd27cd9038237ee33ce6d9/plot_estimate_time_delay.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">plot_estimate_time_delay.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Peter's Mechanics Examples</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=pydy&repo=pst-notebooks&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">See the Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_148_opty.html">Zermelo’s Problem (betts-10-148)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_113_opty.html">Mixed State-Control Constraints (betts-10-113)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_90_opty.html">Nonconvex Delay (betts_10_90)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_141_opty.html">Tumor Antigionesis (betts_10_141)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_58_opty.html">Heat Equation (betts_10_58)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_43_opty.html">Free-Flying Robot (betts_10_43)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_1_opty.html">Stiff Set of DAEs (betts-10-1)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_57_opty.html">Heat Diffusion Process with Inequality (betts_10_57)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_6_opty.html">Underwater Vehicle (betts-10-6)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_133_opty.html">Two-Strain Tuberculosis Model (betts_10_133)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_144_145_opty.html">Van der Pol Oscillator  (Betts 10.144 / 145)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_144_145_opty.html#first-version-of-the-problem-10-144">First version of the problem (10.144)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_144_145_opty.html#second-version-of-the-problem-10-145">Second version of the problem (10.145)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_73_74_opty.html">Linear Tangent Steering (betts_10_73_74)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_73_74_opty.html#example-10-74">Example 10.74</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_betts_10_73_74_opty.html#example-10-73">Example 10.73</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_identification_of_four_parameters_opty.html">Parameter Identification with Non-Contiguous Measurements.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_brachi_obstruction_opty.html">Brachistochrone with Obstruction</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Time Delay Estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_block_on_disc_coulomb_friction.html">Block Sliding on a Spinning Disc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_chain_symjit.html">Example Using symjit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_particle_different_eoms.html">Particle in Changing Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_balancing_wheel.html">Automatic Balancing of a Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_T_handle.html">Rotating T-handle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_particle_gates_h_opty.html">Particle Through Gates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_car_hits_points.html">Car hits Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_particle_on_numerical_surface.html">Particle on Numerical Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_two_body_skateboard.html">Two Body Skateboard</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_synchronisation.html">Synchronisation of Clocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_sailboat_around_buoy.html">Sailboat Around Buoy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_wood_pecker.html">Wood Pecker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_chain_link_closed.html">Closed Chain</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_d_levinson_lecture_6.html">Spacecraft with Nutation Damper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_car_on_racecourse_delay_opty.html">Battery driven car on a Race Course</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_disc_on_uneven_street.html">Disc on Very Uneven Street, No Jumping Allowed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_3d_drone_propeller.html">3D Drone with Propellers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_spoked_wheel.html">Spoked, Rimless Wheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ball_bouncing_between_two_horizontal_planes.html">Ball bouncing between two planes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_explorer_anomaly.html">Explorer Anomaly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_ellipse_bouncing_on_street_HC_theory.html">Bouncing Ellipse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_hc_colliding_discs_friction_circle.html">Colliding Discs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_hc_rolling_balls_uneven_street.html">Two Balls Rolling on an Uneven Street</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_hc_colliding_ellipses_circle.html">Colliding Ellipses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_two_ellipses_bouncing.html">Two Ellipses Bouncing on a Wavy Street</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">See the Examples</a><ul>
+      <li>Previous: <a href="plot_brachi_obstruction_opty.html" title="previous chapter">Brachistochrone with Obstruction</a></li>
+      <li>Next: <a href="plot_block_on_disc_coulomb_friction.html" title="next chapter">Block Sliding on a Spinning Disc</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Peter Stahlecker.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/examples/plot_estimate_time_delay.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
