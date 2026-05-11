@@ -6,8 +6,10 @@ Explorer Anomaly
 Objectives
 ----------
 
-- Show how to use *generate_ode_function* as a fast alternative for lambdify
-- Show how to use PyDy Visualization to create a 3D animation
+- Show how calculate reaction forces with System.evaluate_ode()
+- Show how to use some specific ode_solver
+- Show how to use ``evaluate_ode`` for the calculation of the contributing
+  forces (reaction forces) of the antennae to the explorer.
 
 Description
 -----------
@@ -47,12 +49,6 @@ Notes
 - As there is dampening, the total energy of the system decreases.
 - As there are no external forces or torques, the angular momentum of the
   system must be constant.
-- For the determination of the reaction forces at the connection points the
-  accelerations are needed. As generate_ode_function needs C - contiguous
-  arrays, a bit of care has to be taken there.
-- With PyDy Visualisation the axis of a cylinder is always in the Y direction.
-  If this was not considered when setting up the system, it must be corrected
-  when defining the visualization frames - as it is done here.
 
 **States**
 
@@ -102,7 +98,7 @@ import sympy.physics.mechanics as me
 from scipy.integrate import solve_ivp
 from scipy.optimize import root
 from scipy.interpolate import CubicSpline
-from pydy.codegen.ode_function_generators import generate_ode_function
+from pydy.system import System
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 from matplotlib import animation
 
@@ -283,7 +279,7 @@ kd = sm.Matrix([
     *[(rot[4] - rot1[4]).dot(uv) for uv in (Aa3.y, Aa3.z)],
 ])
 
-kanes = me.KanesMethod(
+kane = me.KanesMethod(
     N,
     q_ind,
     u_ind,
@@ -291,8 +287,8 @@ kanes = me.KanesMethod(
     u_auxiliary=aux,
 )
 
-fr, frstar = kanes.kanes_equations(bodies, torques)
-eingepraegt = kanes.auxiliary_eqs.subs({i.diff(t): rhs_list[j]
+fr, frstar = kane.kanes_equations(bodies, torques)
+eingepraegt = kane.auxiliary_eqs.subs({i.diff(t): rhs_list[j]
                                         for j, i in enumerate(u_ind)})
 
 
@@ -315,37 +311,85 @@ ang_momentum = [
 
 
 # %%
-# Compilation using generate_ode_function.
+# Define a specific ode solver.
+
+def ode_solver(f, x0, ts, args=(), **kwargs):
+    return solve_ivp(lambda t, x: f(x, t, *args), ts[[0, -1]], x0,
+                     t_eval=ts, **kwargs).y.T
+
+# %%
+# Initialize System.
+
+sys = System(kane, ode_solver=ode_solver)
+
+# Define the constants of the system.
+
+sys.constants = {
+    Le: 2.05,
+    rei: 0.060,
+    reo: 0.076,
+    dist: 0.076,
+    La: 0.56,
+    m_e: 13.9,
+    m_a: 13.9 / 100.0,
+    shift: 0.1,
+    k_torque: 0.565,
+    mu_torque: 1.13,
+}
+
+# %%
+#Set the initial_conditions.
+
+
+sys.initial_conditions = {
+    x: 0.0,
+    y: 0.0,
+    z: 0.0,
+    ux: 0.0,
+    uy: 0.0,
+    uz: 0.0,
+    qex: 0.0,
+    qey: 0.0,
+    qez: 0.0,
+
+    uez: 750.0 * 2 * np.pi / 60,  # 750 rpm
+    uex: 750.0 / 1.e3,
+    uey: 750.0 / 1.e3,
+
+    q0x: 0.0,
+    q0z: 0.0,
+    u0x: 0.0,
+    u0z: 0.0,
+    q1x: 0.0,
+    q1z: 0.0,
+    u1x: 0.0,
+    u1z: 0.0,
+    q2y: 0.0,
+    q2z: 0.0,
+    u2y: 0.0,
+    u2z: 0.0,
+    q3y: 0.0,
+    q3z: 0.0,
+    u3y: 0.0,
+    u3z: 0.0,
+    }
+
+# %%
+#In the force vector are the reaction forces and the virtual speeds.
+#As they do no work, they are set to zero. This is not really necessary as
+#System() will do this automatically, but it is done here for clarity.
+
+spec_sym = sys.specifieds_symbols
+sys.specifieds = {'symbols': spec_sym, 'values': np.zeros(12)}
+
+
+# %%
+# As speed is of no concern here, lambdify is used.
 
 qL = q_ind + u_ind
-pL = [m_e, m_a, rei, reo, dist, shift, La, Le, k_torque, mu_torque]
+pL = [key for key in sys.constants.keys()]
+pL_vals = [sys.constants[key] for key in pL]
 
-specified = None
-constants = np.array(pL)
-
-loesung = sm.solve(kd, [q_ind[i].diff(t) for i in range(len(q_ind))])
-# The solution must be sorted so that it corresponds to KM.q
-schluessel = [i.diff(t) for i in kanes.q]
-kin_eqs_solved = sm.Matrix([loesung[i] for i in schluessel])
-
-mass_matrix = me.msubs(kanes.mass_matrix, {i: 0 for i in aux})
-force = me.msubs(kanes.forcing, {i: 0 for i in aux + F_r})
-
-rhs_gen = generate_ode_function(
-    force,
-    kanes.q,
-    kanes.u,
-    constants=constants,
-    mass_matrix=mass_matrix,
-    specifieds=specified,
-    coordinate_derivatives=kin_eqs_solved,  # rhs of kin. diff. equations
-    generator='cython',
-    linear_sys_solver='numpy',
-    constants_arg_type='array',
-    specifieds_arg_type='array',
-)
-
-# As speed is of no concern here, lambdify is used.
 kin_lam = sm.lambdify(qL + pL, kin_energy, cse=True)
 spring_lam = sm.lambdify(qL + pL, spring_energy, cse=True)
 ang_momentum_lam = sm.lambdify(qL + pL, ang_momentum, cse=True)
@@ -357,85 +401,13 @@ eingepraegt_lam = sm.lambdify(F_r + qL + pL + rhs_list,
 # Numerical Integration
 # ---------------------
 
-# Input parameters and initial conditions
+sys.generate_ode_function(generator='cython', linear_sys_solver='numpy')
 
-Le1 = 2.05
-rei1 = 0.060
-reo1 = 0.076
-dist1 = reo1
-La1 = 0.56
-m_e1 = 13.9
-m_a1 = m_e1 / 100.0
-shift1 = 0.1
-k_torque1 = 0.565
-mu_torque1 = 1.13
+sys.times = np.linspace(0., 100.0, 250)
 
-x1, y1, z1 = 0.0, 0.0, 0.0
-ux1, uy1, uz1 = 0.0, 0.0, 0.0
-qex1, qey1, qez1 = 0.0, 0.0, 0.0
+resultat = sys.integrate(method='DOP853', atol=1.e-6, rtol=1.e-6)
 
-uez1 = 750.0 * 2 * np.pi / 60  # 750 rpm
-uex1 = uez1 / 1.e3
-uey1 = uez1 / 1.e3
-
-q0x1, q0z1 = 0.0, 0.0
-u0x1, u0z1 = 0.0, 0.0
-q1x1, q1z1 = 0.0, 0.0
-u1x1, u1z1 = 0.0, 0.0
-q2y1, q2z1 = 0.0, 0.0
-u2y1, u2z1 = 0.0, 0.0
-q3y1, q3z1 = 0.0, 0.0
-u3y1, u3z1 = 0.0, 0.0
-
-pL_vals = [m_e1, m_a1, rei1, reo1, dist1, shift1, La1, Le1, k_torque1,
-           mu_torque1]
-
-y0 = [
-    x1, y1, z1,
-    qex1, qey1, qez1,
-    q0x1, q0z1,
-    q1x1, q1z1,
-    q2y1, q2z1,
-    q3y1, q3z1,
-    ux1, uy1, uz1,
-    uex1, uey1, uez1,
-    u0x1, u0z1,
-    u1x1, u1z1,
-    u2y1, u2z1,
-    u3y1, u3z1,
-]
-
-iXXe1 = m_e1/12 * (3*(rei1**2 + reo1**2) + Le1**2)
-iZZe1 = m_e1/2 * (rei1**2 + reo1**2)
-iYYe1 = iXXe1
-
-print(f'Explorer inertias: Ixx={iXXe1:.6f}, Iyy={iYYe1:.6f}, Izz={iZZe1:.6f}')
-
-
-def gradient(t, y, args):
-    # needed for generate_ode_function, if in solve_ivp method != 'RK45'
-    # y = np.ascontiguousarray(y)
-    args = np.array(args)
-    rhs = rhs_gen(y, t, args)
-    return rhs
-
-
-interval = 100.0  # seconds
-schritte = 1000
-times = np.linspace(0., interval, schritte)
-t_span = (0., interval)
-
-resultat1 = solve_ivp(gradient, t_span, y0, t_eval=times, args=(pL_vals,),
-                      atol=1e-12, rtol=1e-12,
-                      )
-
-
-resultat = resultat1.y.T
 print('resultat shape', resultat.shape)
-print(resultat1.message, '\n')
-
-print(f"To numerically integrate an interval of {interval} sec the "
-      f"routine cycled {resultat1.nfev:,} times")
 
 # %%
 # Plot some generalized coordinates
@@ -446,7 +418,7 @@ fig, ax = plt.subplots(4, 1, figsize=(8, 8), layout='constrained',
                        sharex=True)
 for i in (17, 18, 19):
     begin = 0
-    ax[0].plot(times[begin: resultat.shape[0]], resultat[begin:, i],
+    ax[0].plot(sys.times[begin: resultat.shape[0]], resultat[begin:, i],
                label=bezeichnung[i])
     ax[0].axhline(1.35, color='black', lw=0.5, ls='--')
     ax[0].axhline(-1.35, color='black', lw=0.5, ls='--')
@@ -455,18 +427,18 @@ for i in (17, 18, 19):
 _ = ax[0].legend()
 
 for i in (0, 1, 2):
-    ax[1].plot(times[begin: resultat.shape[0]], resultat[begin:, i],
+    ax[1].plot(sys.times[begin: resultat.shape[0]], resultat[begin:, i],
                label=bezeichnung[i])
     ax[1].set_title('Various generalized coordinates as selected')
 _ = ax[1].legend()
 
 for i in (6, 7, 8, 9, 10, 11, 12, 13):
-    ax[2].plot(times[begin: resultat.shape[0]], resultat[begin:, i],
+    ax[2].plot(sys.times[begin: resultat.shape[0]], resultat[begin:, i],
                label=bezeichnung[i])
 _ = ax[2].legend()
 
 for i in (20, 21, 22, 23):
-    ax[3].plot(times[begin: resultat.shape[0]], resultat[begin:, i],
+    ax[3].plot(sys.times[begin: resultat.shape[0]], resultat[begin:, i],
                label=bezeichnung[i])
 ax[-1].set_xlabel('Time [s]')
 _ = ax[3].legend()
@@ -480,11 +452,11 @@ kin_np = kin_lam(*(resultat.T), *pL_vals)
 spring_np = spring_lam(*(resultat.T), *pL_vals)
 total_np = kin_np + spring_np
 begin = 0
-ax[0].plot(times[begin: resultat.shape[0]], kin_np[begin:],
+ax[0].plot(sys.times[begin: resultat.shape[0]], kin_np[begin:],
            label='kinetic energy')
-ax[0].plot(times[begin: resultat.shape[0]], spring_np[begin:],
+ax[0].plot(sys.times[begin: resultat.shape[0]], spring_np[begin:],
            label='spring energy')
-ax[0].plot(times[begin: resultat.shape[0]], total_np[begin:],
+ax[0].plot(sys.times[begin: resultat.shape[0]], total_np[begin:],
            label='total energy')
 ax[0].set_ylabel('Energy [J]')
 ax[0].set_title('Energy of the system')
@@ -503,7 +475,7 @@ print(f'Max error from conservation of angular momentum: {error:.3e}')
 
 
 for i, j in enumerate(['x', 'y', 'z']):
-    ax[1].plot(times[: resultat.shape[0]], ang_momentum_lam(
+    ax[1].plot(sys.times[: resultat.shape[0]], ang_momentum_lam(
         *(resultat.T), *pL_vals)[i], label=f'angular momentum {j}')
     ax[1].set_ylabel('Angular momentum [kg m²/s]')
     ax[1].set_title('Angular momentum of the system')
@@ -513,14 +485,7 @@ _ = ax[1].legend()
 # Calculate Reaction Forces on Points, where the Antennas are attached to
 # Explorer
 
-# Calculate the accelerations needed for the reaction forces. As rhs_gen needs
-# C - contiguous arrays, the inputs must be converted here accordingly.
-RHS = np.empty((resultat.shape))
-pL_vals_C = np.ascontiguousarray(pL_vals)
-for i in range(resultat.shape[0]):
-    res_C = np.ascontiguousarray(resultat[i])
-    RHS[i] = rhs_gen(res_C, 0.0, pL_vals_C)
-
+RHS = sys.evaluate_ode(x=resultat)
 reaction_forces = np.empty((resultat.shape[0], 12))
 summe_np = np.empty(resultat.shape[0])
 
@@ -542,13 +507,13 @@ fig, ax = plt.subplots(4, 1, figsize=(8, 8), layout='constrained',
                        sharex=True)
 for i in range(4):
     for k, j in zip(reaction_forces[:, 3*i:3*i+3].T, ('x', 'y', 'z')):
-        ax[i].plot(times[begin:], k[begin:], label=f'Reaction Force {j}')
+        ax[i].plot(sys.times[begin:], k[begin:], label=f'Reaction Force {j}')
     ax[i].set_ylabel('Force [N]')
     ax[i].set_title(f'Reaction Forces at the Antennae Mounting Point P{i} '
                     'in the Explorer Frame Ae')
     ax[i].legend()
 _ = ax[-1].set_xlabel('Time [s]')
-ax[0].plot(times[begin:], summe_np[begin:], 'r--', label='Sum of all Forces')
+ax[0].plot(sys.times[begin:], summe_np[begin:], 'r--', label='Sum of all Forces')
 _ = ax[0].legend()
 
 # %%
