@@ -3,6 +3,11 @@ r"""
 Park a Truck with Two Trailers
 ==============================
 
+Objective
+---------
+
+- Show how to use the ``variable bounds feature`` of ``opty``.
+
 Description
 -----------
 
@@ -16,19 +21,17 @@ The truck and trailers are conneted to a tow bar, ligidly fixed to the
 front axle of each trailer. The tow bars have length :math:`l_d`.
 The driving force and the steering torque are the controls.
 
+The tractor / trailer arrangement must be approximately straight in the
+parking spot, but not completely so.
+Hence adjustable bounds are used to allow for larger angles during the trip
+and smaller ones when parking.
+
 Notes
 -----
 
 - The idea is from  Jason Moore, private communication.
-- I never got the problem to converge, no matter what I tried. The results
-  look reasonable as far as the violation of the constraints
-  is concerned, and also the objective value looks like it has become
-  constant - but no convergence.
-- Changes like increasing / decreasing the number of nodes or the
-  maximum number of iterations could change the results substantially.
-- Using a new feature of ``opty`` (variable bounds), not yet released, hence
-  not available here, I managed   to achieve convergence, but also not
-  very 'stable'.
+- While the released version of opty is 1.5.0, the developmental version
+  of opty must be used to run the code.
 
 **States**
 
@@ -79,6 +82,7 @@ import sympy.physics.mechanics as me
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
+import time
 
 from opty import Problem
 from scipy.interpolate import interp1d
@@ -90,6 +94,8 @@ from matplotlib.animation import FuncAnimation
 # ------------------------
 #
 # Geometry
+
+start_time = time.time()
 
 N, A10, A11, A20, A21, A30, A31 = sm.symbols(
     'N A10 A11 A20 A21 A30 A31', cls=me.ReferenceFrame)
@@ -314,11 +320,12 @@ print(f"the eoms contain {sm.count_ops(eom):,} operations and have "
 # Set Up the Optimization
 # -----------------------
 
+h = sm.symbols('h')
 state_symbols = q_ind + u_ind + u_dep
 
-num_nodes = 101
-t0, tf = 0.0, 5.0
-interval_value = (tf - t0) / (num_nodes - 1)
+num_nodes = 501
+t0, tf = 0.0, h * (num_nodes - 1)
+interval_value = h
 
 # %%
 # Set the parameters.
@@ -338,23 +345,18 @@ par_map[di] = 8.0
 par_map[reibung] = 0.0
 
 # %%
-# The force needed to park the truck must be minimized.
+# The truck must park as fast as possible.
 
 
 def obj(free):
-    return np.sum(free[16*num_nodes:18*num_nodes]**2) * interval_value
+    return free[-1]
 
 
 def obj_grad(free):
     grad = np.zeros_like(free)
-    grad[16*num_nodes:18*num_nodes] = \
-        2 * free[16*num_nodes:18*num_nodes] * interval_value
+    grad[-1] = 1.0
     return grad
 
-
-# %%
-# Bound the force and the steering torque.
-limit = 75.0
 
 # %%
 # Set the instance constraints.
@@ -376,7 +378,7 @@ instance_constraints = [
     ux.func(t0) - 0.0,
     uy.func(t0) - 0.0,
     x3b.func(t0) - 25.0,
-    y3b.func(t0) - 25 + (par_map[l3] + par_map[l2] + 2.0 * par_map[ld] +
+    y3b.func(t0) - 15 + (par_map[l3] + par_map[l2] + 2.0 * par_map[ld] +
                          par_map[l1]),
 
     x3b.func(tf) - 0.0,
@@ -389,33 +391,51 @@ instance_constraints = [
     u21.func(tf) - 0.0,
     u30.func(tf) - 0.0,
     u31.func(tf) - 0.0,
-
-    q10.func(tf) - np.pi / 2.0,
-    q20.func(tf) - 0.0,
-    q30.func(tf) - 0.0,
-    q11.func(tf) - 0.0,
-    q21.func(tf) - 0.0,
-    q31.func(tf) - 0.0,
 ]
 
+
 # %%
-# While travelling the angle between two adjacent vehicles must be larger than
-# :math:`\frac{\pi}{2}`.
-# The angles of the front axles of the trailers must be less than
-# :math:`\frac{\pi}{ 3}` relative to the center line of the trailers, and the
-# steering axle must be less than :math:`\frac{\pi}{4}` relative to the
-# center line of the truck.
+# While traveling the angle between two adjacent vehicles must be larger than
+# :math:`\frac{\pi}{2}`, The angle of the front axles of the trailers must
+# always be less than :math:`\frac{\pi}{3}` w.r.t. the respective trailers,
+# and the steering axle must be less than :math:`\frac{\pi}{4}` w.r.t.
+# the truck.(of course quite arbitrary values).
+#
+# In the parking spot, truck/trailer arrangement should be approximately
+# straight, but not completely so.
+#
+# Hence adjustable bounds are used to allow for larger angles during
+# the trip and smaller ones when parking.
+low_bound_2 = np.array([-np.pi / 2 for _ in range(num_nodes - 30)] +
+                       [-np.pi / 2 / i for i in range(1, 31)])
+up_bound_2 = np.array([np.pi / 2 for _ in range(num_nodes - 30)] +
+                      [np.pi / 2 / i for i in range(1, 31)])
+
+low_bound_3 = np.array([-np.pi / 3 for _ in range(num_nodes - 30)] +
+                       [-np.pi / 3 / np.sqrt(i) for i in range(1, 31)])
+up_bound_3 = np.array([np.pi / 3 for _ in range(num_nodes - 30)] +
+                      [np.pi / 3 / np.sqrt(i) for i in range(1, 31)])
+
+low_bound_x3b = np.array([-25.0 for _ in range(num_nodes - 30)] +
+                         [-0.25 for _ in range(1, 31)])
+up_bound_x3b = np.array([50.0 for _ in range(num_nodes - 30)] +
+                        [0.25 for _ in range(1, 31)])
+
+limit = 150.0
 
 bounds = {
+    h: (0.0, 0.01),
     F: (-limit, limit),
     Torq: (-limit, limit),
-    q20: (-np.pi/2, np.pi/2),
-    q30: (-np.pi/2, np.pi/2),
+    q20: (low_bound_2, up_bound_2),
+    q30: (low_bound_2, up_bound_2),
     q11: (-np.pi/4, np.pi/4),
-    q21: (-np.pi/3, np.pi/3),
-    q31: (-np.pi/3, np.pi/3),
+    q21: (low_bound_3, up_bound_3),
+    q31: (low_bound_3, up_bound_3),
+    x3b: (low_bound_x3b, up_bound_x3b),
     y: (-4.0, 25.0),
 }
+
 
 # %%
 # The truck and trailers must stay above the function defining the parking
@@ -454,9 +474,10 @@ initial_guess[7*num_nodes:8*num_nodes - int(num_nodes/5)] = \
         25.0, 0.0, num_nodes - int(num_nodes/5))) + 15
 initial_guess[8*num_nodes - int(num_nodes/5):8*num_nodes] = \
     np.linspace(20.0, 0.0, int(num_nodes/5))
+initial_guess[-1] = 0.01
 
 
-max_iter = 7500
+max_iter = 3000
 prob.add_option('max_iter', max_iter)
 solution, info = prob.solve(initial_guess)
 print(info['status_msg'])
@@ -479,11 +500,14 @@ _ = prob.plot_objective_value()
 # Animation
 # ---------
 
+print("running the simulation took "
+      f"{(time.time() - start_time) / 60:.2f} minutes")
 fps = 20
 
-resultat, inputs, *_ = prob.parse_free(solution)
+resultat, inputs, *_, h_val = prob.parse_free(solution)
 resultat = resultat.T
 inputs = inputs.T
+tf = h_val * (num_nodes - 1)
 t_arr = np.linspace(t0, tf, num_nodes)
 state_sol = interp1d(t_arr, resultat, kind='cubic', axis=0)
 input_sol = interp1d(t_arr, inputs, kind='cubic', axis=0)
@@ -494,7 +518,7 @@ qL = q_ind + u_ind + u_dep + [F, Torq]
 
 # Define the end of the force_vector.
 arrow_head = me.Point('arrow_head')
-scale = 5.0
+scale = 10.0
 arrow_head.set_pos(P1b, F / scale * A10.x)
 
 # Get the coordinates of the points in the inertial frame for plotting.
