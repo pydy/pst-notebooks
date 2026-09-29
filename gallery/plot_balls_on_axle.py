@@ -310,6 +310,7 @@ q1_ind = [qL11, qL21, qL31, qR31, q31, qR11, qR21, xL1, yL1]
 # q_depf = [zL, xR, yR, zR, q2, qL0, qR0]
 q1_dep = [1.0] * 7
 
+# %%
 # Set independent speeds.
 #
 # u_indf = [uL1, uL2, uL3, uR3, u3]
@@ -320,7 +321,7 @@ uR31 = 0.0
 u31 = 0.0
 u1_ind = [uL11, uL21, uL31, uR31, u31]
 
-
+# %%
 # Provisionally set the dependent speeds.
 #
 # u_depf = [uR1, uR2, uxL, uyL, uzL, uxR, uyR, uzR, u2, uL0, uR0]
@@ -583,13 +584,19 @@ tf = 10.0
 schritte = 500
 t_eval = np.linspace(0, tf, schritte)
 
-# kappa, kappanh and nu only enter through their derivatives,
-# their error should not drive the step size
+# %%
+# :math:`\kappa`, :math:`\kappa_{nh}` and :math:`\nu` only enter through
+# their derivatives, their errors are of no concern.
 atol_dae = np.full(50, atol)
 atol_dae[32:50] = 1.e3
 
+# %%
+# Number of stages for the Radau method. Must be an odd number. Only works
+# Radau, mot with BDF.
 stages = 5
 
+#%%
+# Solve the DAE system.
 sol = solve_dae(F, [0, tf], v01, vp01, atol=atol_dae, rtol=rtol,
                 method='Radau',
                 t_eval=t_eval,
