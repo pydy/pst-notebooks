@@ -15,49 +15,50 @@ it. A mass modeled as a ball of mass :math:`m_m` and radius :math:`r_m` can
 move frictionlessly along the'horizontal part' of the linkage and a
 control force :math:`f_z` is applied to it.
 
-The goal is to orient it in such a way, that the body fixed frame of the
-spacecraft (A1) aligns with the inertial frame (N) in their z directions.
+The goal is to orient the spacecraft in such a way, that the body fixed frame
+of the spacecraft (A1) aligns with the inertial frame (N) in their z direction.
 and that the rotation of the spacecraft around its x and y axes is minimized.
 
 Notes
 -----
 
 - The idea is from https://arc.aiaa.org/doi/abs/10.2514/3.55956?journalCode=jgc
-  which was written for another purpose. I just changed the linkage design.
+  which was written for another purpose. The linkage design is changed.
 - As there are no external forces or torques acting on the system, its
-  angular momentum should be constant. The solution obtained initially was far
-  from keeping it constant. When I added equations forcing it to be constant,
+  angular momentum should be constant. The solution so obtained was far
+  from keeping it constant. When adding equations forcing it to be constant,
   it became constant within numerical errors.
   It seems unclear, whether such an enforcing helps or hurts the solution.
 - Solving the system as an ODE, with the controls replaced by simple functions
   only kept the angular momentum approximately constant when very small
-  tolerances ``atol, rtol`` were used with ``solve_ivp``.
-  (As per my experience atol = rtol = :math:`10^{-6}` is good enough for simple
-  problems. Here only atol = rtol = :math:`10^{-9}` would give results where
-  the angular momentum is at least visibly conserved.)
-  Apparently this
-  simple looking problem is not so simple to integrate numerically.
+  tolerances ``atol, rtol`` were used with ``solve_ivp``. (This refers to
+  a previous version using Euler angles. I did not try this with
+  quaternions.)
 - No statements can be made about the kinetic energy of the system as
   confirmed by Carlos Roithmayr (private communication).
 - The objective function is to minimize the 'total movement around the
   x and y axes of the spacecraft', while it reaches the final position.
 - While 1.5.0 is the latest released version of opty, the developmental
   version must be used to run this code.
-- For this simulation initial values are taken from a previously saved
-  solution file. It took hours on my PC to get this solution.
+- When I changed to quaternions for Euler angles, execution time dropped to
+  one hour from about five hours before.
 - Increasing ``fps`` in the animation program will make the animation smooother
   at the expense of increased storage.
 
 **States**
 
-- :math:`q_1, q_2, q_3` : Orientation angles of the spacecraft's body
+- :math:`q_0, q_1, q_2, q_3` : quaternion of the spacecraft's body
   fixed frame (A1) relative to the inertial frame (N).
-- :math:`u_1, u_2, u_3` : angular velocities
-- :math:`q_4, q_5, q_6` : Orientation angles of the linkage's body fixed frame
+- :math:`u_0, u_1, u_2, u_3` : velocities
+- :math:`q_{00}, q_4, q_5, q_6` : quaternion of the linkage's body fixed frame
   (A2) relative to the spacecraft's body fixed frame.
-- :math:`u_4, u_5, u_6` : angular velocities.
+- :math:`u_{00}, u_4, u_5, u_6` : velocities.
 - :math:`r, u_r` : Position and velocity of the mass along the
   horizontal part (A2.z) of the linkage.
+- :math:`x_1, x_2, x_3` : Position of the spacecraft's center of mass in the
+  inertial frame.
+- :math:`ux_1, ux_2, ux_3` : Velocity of the spacecraft's center of mass in the
+  inertial frame.
 
 **Controls**
 
@@ -80,6 +81,7 @@ import sympy.physics.mechanics as me
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import time
 
 from scipy.interpolate import interp1d
 from matplotlib.animation import FuncAnimation
@@ -104,8 +106,8 @@ x1, x2, x3, ux1, ux2, ux3 = me.dynamicsymbols('x1 x2 x3 ux1 ux2 ux3')
 
 # %%
 # Rotation and angular velocity of the spacecraft and the linkage.
-q1, q2, q3, q4, q5, q6 = me.dynamicsymbols('q1 q2 q3 q4 q5 q6')
-u1, u2, u3, u4, u5, u6 = me.dynamicsymbols('u1 u2 u3 u4 u5 u6')
+q0, q1, q2, q3, q00, q4, q5, q6 = me.dynamicsymbols('q0 q1 q2 q3 q00 q4 q5 q6')
+u0, u1, u2, u3, u00, u4, u5, u6 = me.dynamicsymbols('u0 u1 u2 u3 u00 u4 u5 u6')
 
 # %%
 # Control inputs for opty.
@@ -123,23 +125,14 @@ b, c, l1, l2, l3 = sm.symbols('b c l1 l2 l3')
 
 # %%
 # Body fixed frame of the spacecraft.
-# rot, rot1 are needed for the kinematic differential equations. This gives
-# them in the form recommended by Carlos Rothmayr in his book: Theory and
-# Application of Kane's Method.
-A1.orient_body_fixed(N, (q1, q2, q3), 'XYZ')
-rot11 = A1.ang_vel_in(N)
-A1.set_ang_vel(N, u1 * A1.x + u2 * A1.y + u3 * A1.z)
-rot12 = A1.ang_vel_in(N)
+A1.orient_quaternion(N, (q0, q1, q2, q3))
 
 # %%
 # Body fixed frame of the linkage.
 #
 # Also used as body fixed frame of the
 # moving mass. (As the mass is rotationally symmetric, any frame would do.)
-A2.orient_body_fixed(A1, (q4, q5, q6), 'XYZ')
-rot21 = A2.ang_vel_in(A1)
-A2.set_ang_vel(A1, u4 * A2.x + u5 * A2.y + u6 * A2.z)
-rot22 = A2.ang_vel_in(A1)
+A2.orient_quaternion(A1, (q00, q4, q5, q6))
 
 # %%
 # Mass center of the spacecraft.
@@ -149,7 +142,9 @@ Dmc.set_vel(N, ux1 * N.x + ux2 * N.y + ux3 * N.z)
 # %%
 # Position of the linkage where the upright part meets the horizontal part.
 P2.set_pos(Dmc, b * A2.x)
-_ = P2.v2pt_theory(Dmc, N, A2)
+P2.v2pt_theory(Dmc, N, A2)
+print('angular velocity of A2 in A1:')
+A2.ang_vel_in(A1)
 
 # %%
 # Position of the mass moving on the horizontal part of the linkage.
@@ -197,8 +192,14 @@ FL = [
 # %%
 # Differential kinematic equations for the system.
 kd = sm.Matrix([
-    *[(rot11 - rot12).dot(uv) for uv in N],
-    *[(rot21 - rot22).dot(uv) for uv in (A1.x, A1.y, A1.z)],
+    q0.diff(t) - u0,
+    q1.diff(t) - u1,
+    q2.diff(t) - u2,
+    q3.diff(t) - u3,
+    q00.diff(t) - u00,
+    q4.diff(t) - u4,
+    q5.diff(t) - u5,
+    q6.diff(t) - u6,
     r.diff(t) - ur,
     x1.diff(t) - ux1,
     x2.diff(t) - ux2,
@@ -206,11 +207,35 @@ kd = sm.Matrix([
 ])
 
 # %%
+# Configuration and speed constraints for the quaternions.
+config_constr = sm.Matrix([
+    q0**2 + q1**2 + q2**2 + q3**2 - 1,
+    q00**2 + q4**2 + q5**2 + q6**2 - 1
+])
+
+# %%
+# Speed constraints are obtained by differentiating the configuration
+# constraints with respect to time. Needed for Kane's method.
+speed_constr = config_constr.diff(t)
+
+
+# %%
 # Finish setting up Kane's EOMs.
 q_ind = [q1, q2, q3, q4, q5, q6, r, x1, x2, x3]
+q_dep = [q0, q00]
 u_ind = [u1, u2, u3, u4, u5, u6, ur, ux1, ux2, ux3]
+u_dep = [u0, u00]
 
-kane = me.KanesMethod(N, q_ind, u_ind, kd_eqs=kd)
+kane = me.KanesMethod(
+    N,
+    q_ind,
+    u_ind,
+    q_dependent=q_dep,
+    u_dependent=u_dep,
+    kd_eqs=kd,
+    configuration_constraints=config_constr,
+    velocity_constraints=speed_constr,
+)
 fr, frstar = kane.kanes_equations(bodies, FL)
 
 eom = kd.col_join(fr + frstar)
@@ -227,6 +252,13 @@ eom_H = sm.Matrix([H_total.dot(N.x) - H01,
 eom = eom.col_join(eom_H)
 
 # %%
+# Create a dictionary replacing the time derivatives of the generalized
+# coordinates with their expressions from the kinematic differential equations.
+A_kin, b_kin = sm.linear_eq_to_matrix(kd, [i.diff(t) for i in q_ind + q_dep])
+loesung = A_kin.LUsolve(b_kin)
+kin_dict = {i.diff(t): loesung[j] for j, i in enumerate(q_ind + q_dep)}
+
+# %%
 # Force the x, y components of the angular velocity of A1 to be zero at
 # :math:`t_f`.
 A1_ang_x, A1_ang_y = me.dynamicsymbols('A1_ang_x A1_ang_y')
@@ -238,23 +270,27 @@ eom = eom.col_join(eom_ang)
 # %%
 # Force the ang. accelerations to be zero at :math:`t_f`.
 A1_ang_x_dot, A1_ang_y_dot = me.dynamicsymbols('A1_ang_x_dot A1_ang_y_dot')
-eom_ang_acc = sm.Matrix([A1.ang_acc_in(N).dot(N.x) - A1_ang_x_dot,
-                         A1.ang_acc_in(N).dot(N.y) - A1_ang_y_dot])
+
+A1_ang_vel = me.msubs(A1.ang_vel_in(N), kin_dict)
+A1_ang_acc = A1_ang_vel.diff(t, N)
+eom_ang_acc = sm.Matrix([A1_ang_acc.dot(N.x) - A1_ang_x_dot,
+                         A1_ang_acc.dot(N.y) - A1_ang_y_dot])
 eom = eom.col_join(eom_ang_acc)
 
+# %%
+# Add the quaternion normalization constraints to the EOMs.
+eom = eom.col_join(config_constr)
+
+# %%
+# Print information about the EOMs.
 print(f"The eoms have {sm.count_ops(eom):,} operations"
       f" {sm.count_ops(sm.cse(eom))} operations after cse")
 print('Shape of the EOMs:', eom.shape)
 
 
 # %%
-# Create a dictionary replacing the time derivatives of the generalized
-# coordinates with their expressions from the kinematic differential equations.
-A_kin, b_kin = sm.linear_eq_to_matrix(kd, [i.diff(t) for i in q_ind])
-loesung = A_kin.LUsolve(b_kin)
-kin_dict = {i.diff(t): loesung[j] for j, i in enumerate(q_ind)}
-
-qLL = q_ind + u_ind
+# Compile some functions for later use.
+qLL = q_ind + q_dep + u_ind + u_dep
 pLL = [m, mm, rm, b, c, l1, l2, l3]
 
 # %%
@@ -269,11 +305,40 @@ kin_energy = sum([me.msubs(body.kinetic_energy(N), kin_dict)
                   for body in bodies])
 kin_lam = sm.lambdify(qLL + pLL, kin_energy, cse=True)
 
+# %%
+# If initial rotations, speeds are give as angles und convert then to
+# quaternions and quaternion rates.
+
+
+def euler123_quaternions(a, ad):
+    # a  = [a1, a2, a3]   Euler angles in body-fixed 1-2-3 sequence
+    # ad = [a1d, a2d, a3d] d/dt of Euler angles
+    # Returns q = [q0..q3] and qd = dq/dt.
+    # From the internet. Formulae likely in textbooks on quaternions.
+
+    a1, a2, a3 = a
+    a1d, a2d, a3d = ad
+    c1, s1 = np.cos(a1/2), np.sin(a1/2)
+    c2, s2 = np.cos(a2/2), np.sin(a2/2)
+    c3, s3 = np.cos(a3/2), np.sin(a3/2)
+
+    q0 = c1*c2*c3 - s1*s2*s3
+    q1 = s1*c2*c3 + c1*s2*s3
+    q2 = c1*s2*c3 - s1*c2*s3
+    q3 = c1*c2*s3 + s1*s2*c3
+
+    qd0 = -0.5*(q1*a1d + q2*a2d + q3*a3d)
+    qd1 = 0.5*(q0*a1d + (c1*c2*s3 - s1*s2*c3)*a2d + q2*a3d)
+    qd2 = 0.5*(-q3*a1d + (c1*c2*c3 + s1*s2*s3)*a2d - q1*a3d)
+    qd3 = 0.5*(q2*a1d + (s1*c2*c3 - c1*s2*s3)*a2d + q0*a3d)
+
+    return np.array([q0, q1, q2, q3]), np.array([qd0, qd1, qd2, qd3])
+
 
 # %%
 # Set up for opty
 # ---------------
-state_symbols = q_ind + u_ind
+state_symbols = q_ind + q_dep + u_ind + u_dep
 num_nodes = 500
 t0, tf = 0.0, 10.0
 
@@ -301,13 +366,14 @@ pL_vals = [par_map[i] for i in par_map.keys()]
 #
 # The x and y components of the angular velocity of A1 w.r.t.
 # the inertial frame N
-# should be minimized. So the objective function is the sum of the squares of
-# the x and y components of the angular velocity of A1 w.r.t. N. and hence
+# should be minimized. so the objective function is the sum of the squares of
+# the x and y components of the angular velocity of A1 w.r.t. N. and
 # the gradient function is the jacobian of the objective function
 # with respect to the state symbols.
 #
-omega = sm.Matrix([A1.ang_vel_in(N).dot(N.x)**2 +
-                   A1.ang_vel_in(N).dot(N.y)**2])
+A1_ang = me.msubs(A1.ang_vel_in(N), kin_dict)
+omega = me.msubs(sm.Matrix([A1_ang.dot(N.x)**2 +
+                            A1_ang.dot(N.y)**2]), kin_dict)
 omega_jac = omega.jacobian(state_symbols)
 omega_lam = sm.lambdify(state_symbols + pLL, omega, cse=True)
 omega_jac_lam = sm.lambdify(state_symbols + pLL, omega_jac, cse=True)
@@ -377,31 +443,53 @@ bounds = {
 
 # %%
 # Set the initial values for the states.
-q11 = 1.0
-q21 = 1.0
-q31 = 1.0
-q41 = 0.0
-q51 = 0.0
-q61 = 0.0
+#
+# Initial rotations and speeds of A1 w.r.t. N
+alpha = 1.0
+beta = 1.0
+gamma = 1.0
+
+alpha_dot = 2.0
+beta_dot = 2.0
+gamma_dot = 2.0
+
+q01, q01d = euler123_quaternions([alpha, beta, gamma],
+                                       [alpha_dot, beta_dot, gamma_dot])
+
+# %%
+# Initial rotations and speeds of A2 w.r.t. A1
+alpha = 0.0
+beta = 0.0
+gamma = 0.0
+
+alpha_dot = 0.0
+beta_dot = 0.0
+gamma_dot = 0.0
+
+q001, q001d = euler123_quaternions([alpha, beta, gamma],
+                                         [alpha_dot, beta_dot, gamma_dot])
+
+# %%
+# Set the initial values for the states.
+q01, q11, q21, q31 = q01
+q001, q41, q51, q61 = q001
 r1 = par_map[c]
 x11 = 0.0
 x21 = 0.0
 x31 = 0.0
-u11 = 2.0
-u21 = 2.0
-u31 = 2.0
-u41 = 0.0
-u51 = 0.0
-u61 = 0.0
+u01, u11, u21, u31 = q01d
+u001, u41, u51, u61 = q001d
 ur1 = 0.0
 ux11 = 0.0
 ux21 = 0.0
 ux31 = 0.0
 
 instance_constraints = [
+    q0.func(t0) - q01,
     q1.func(t0) - q11,
     q2.func(t0) - q21,
     q3.func(t0) - q31,
+    q00.func(t0) - q001,
     q4.func(t0) - q41,
     q5.func(t0) - q51,
     q6.func(t0) - q61,
@@ -409,9 +497,11 @@ instance_constraints = [
     x1.func(t0) - x11,
     x2.func(t0) - x21,
     x3.func(t0) - x31,
+    u0.func(t0) - u01,
     u1.func(t0) - u11,
     u2.func(t0) - u21,
     u3.func(t0) - u31,
+    u00.func(t0) - u001,
     u4.func(t0) - u41,
     u5.func(t0) - u51,
     u6.func(t0) - u61,
@@ -426,8 +516,8 @@ instance_constraints = [
 # %%
 # Get values of the initial angular momentum components. The angular momentum
 # must be equal to the initial values.
-qL_vals = [q11, q21, q31, q41, q51, q61, r1, x11, x21, x31]
-uL_vals = [u11, u21, u31, u41, u51, u61, ur1, ux11, ux21, ux31]
+qL_vals = [q11, q21, q31, q41, q51, q61, r1, x11, x21, x31] + [q01, q001]
+uL_vals = [u11, u21, u31, u41, u51, u61, ur1, ux11, ux21, ux31] + [u01, u001]
 
 H_fix1, H_fix2, h_fix3 = moment_lam(*qL_vals, *uL_vals, *pL_vals)
 par_map.update({H01: H_fix1, H02: H_fix2, H03: h_fix3})
@@ -449,23 +539,17 @@ prob = Problem(
 print('length of free vector: ', prob.num_free)
 
 # %%
-# Solve the problem if no solution file exists.
-filename = f"Kane_1980_{num_nodes}_nodes_solution.csv"
-if os.path.exists(filename):
-    initial_guess = np.loadtxt(filename)
-else:
-    initial_guess = np.ones(prob.num_free)
+# Solve the problem.
+initial_guess = np.ones(prob.num_free)
+prob.add_option('max_iter', 15000)
 
-prob.add_option('max_iter', 6000)
-
-# %%
-# Reduce accuracy for faster convergence.
-prob.add_option('acceptable_tol', 1e-3)
-prob.add_option('acceptable_iter', 4)
-prob.add_option('tol', 1e-4)
-
+start_time = time.time()
 solution, info = prob.solve(initial_guess)
 print(info['status_msg'])
+end_time = time.time()
+minutes, seconds = divmod(end_time - start_time, 60)
+print(f"Time needed to solve the problem: {int(minutes)} "
+      f"min {seconds:.2f} sec")
 
 # %%
 # Plot objective value.
@@ -477,7 +561,7 @@ _ = prob.plot_jacobian_sparsity()
 
 # %%
 # Plot the components of the angular velocity.
-ang_vel = A1.ang_vel_in(N)
+ang_vel = me.msubs(A1.ang_vel_in(N), kin_dict)
 ang_vel_components = [ang_vel.dot(uv) for uv in N]
 ang_vel_lam = sm.lambdify(qLL + pLL, ang_vel_components, cse=True)
 names = ['ang_vel_x', 'ang_vel_y', 'ang_vel_z']
@@ -492,7 +576,6 @@ ax.set_ylabel('Angular Velocity [rad/s]')
 ax.axhline(0.0, color='k', lw=0.5, ls='--')
 ax.set_title('Angular Velocity Components')
 _ = ax.legend()
-
 # %%
 # Plot the state trajectories.
 axes = prob.plot_trajectories(solution, show_bounds=True)
@@ -503,27 +586,28 @@ for i in (0, 1, 2):
 # Plot the violations of the constraints.
 _ = prob.plot_constraint_violations(solution, subplots=True)
 
-# %% [markdown]
+# %%
 # How well is the angular momentum kept?
 resultat, *_, = prob.parse_free(solution)
 pLL = [m, mm, rm, b, c, l1, l2, l3]
-qLL = q_ind + u_ind
+qLL = q_ind + q_dep + u_ind + u_dep
 H_total = sum([me.msubs(b.angular_momentum(O, N), kin_dict) for b in bodies])
 moment = [H_total.dot(uv) for uv in N]
 moment_lam = sm.lambdify(qLL + pLL, moment, cse=True)
 
 pL_vals = [par_map[i] for i in pLL]
-H_norm = np.linalg.norm(moment_lam(*resultat, *pL_vals), axis=0)
+H_norm = np.linalg.norm(moment_lam(*resultat, *pL_vals)[:][2:], axis=0)
 H_max = np.max(H_norm)
 H_min = np.min(H_norm)
 delta_H = (H_max - H_min) / H_max
-print("Max deviation in angular momentum norm from being constant is: "
+print("Max deviaiton in angular momentum norm from being constant is: "
       f"{delta_H:.3e}")
 times = prob.time_vector(solution)
 
 fig, ax = plt.subplots(2, 1, figsize=(8, 4), sharex=True, layout='constrained')
 for i in range(3):
-    ax[0].plot(times, moment_lam(*resultat, *pL_vals)[i], label=f'H_{i+1}')
+    ax[0].plot(times[2:], moment_lam(*resultat, *pL_vals)[i][2:],
+               label=f'H_{i+1}')
 ax[0].set_title('Components of the angular momerntum')
 ax[-1].set_xlabel('Time')
 ax[0].legend()
@@ -540,10 +624,9 @@ _ = ax[1].set_title('Kinetic energy')
 # The motion of the center of mass is suppressed to better see the rotations.
 # The rotating box was written by AI. I just adapted it to my needs.
 #
-v_ang = A1.ang_vel_in(N)
+v_ang = me.msubs(A1.ang_vel_in(N), kin_dict)
 v_ang = [v_ang.dot(uv) for uv in N]
 v_ang_lam = sm.lambdify(qLL + pLL, v_ang, cse=True)
-
 # Start the animation program.
 fps = 7
 
