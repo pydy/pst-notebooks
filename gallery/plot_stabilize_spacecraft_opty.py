@@ -617,6 +617,23 @@ _ = ax[1].set_title('Kinetic energy')
 
 
 # %%
+# Revert back to Euler angles XYZ for the plot.
+# Needed for the rotation of the spacecraft.
+
+
+def quat_to_euler_xyz(q):
+    q = np.asarray(q, dtype=float)
+    q0, q1, q2, q3 = q
+
+    s2 = 2.0 * (q1*q3 + q0*q2)
+    # -1 <= s2 <= 1 needed because of arcsin.
+    s2 = np.clip(s2, -1.0, 1.0)
+
+    a2 = np.arcsin(s2)
+    a1 = np.arctan2(-2.0*(q2*q3 - q0*q1), 1.0 - 2.0*(q1**2 + q2**2))
+    a3 = np.arctan2(-2.0*(q1*q2 - q0*q3), 1.0 - 2.0*(q2**2 + q3**2))
+
+    return [a1, a2, a3]
 
 # %%
 # Animation
